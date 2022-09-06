@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title id="class-title"></title>
+
+    <script src="/__/firebase/8.2.1/firebase-app.js"></script>
+    <script src="/__/firebase/8.2.1/firebase-auth.js"></script>
+    <script src="/__/firebase/8.2.1/firebase-firestore.js"></script>
+    <script src="/__/firebase/8.2.1/firebase-analytics.js"></script>
+    <script src="/__/firebase/init.js?useEmulator=true"></script>
+
+    <link rel="stylesheet" type="text/css" href="/src/css/sk.css">
+    <style>
+        .tableContainer {
+            height: 300px;
+            padding-bottom: 30px;
+            overflow-y: scroll;
+            overflow-x: hidden;
+            -webkit-mask: linear-gradient(to bottom, #ffffffff 0%, #ffffffff 90%, #ffffff00 100%);
+            mask: linear-gradient(to bottom, #ffffffff 0%, #ffffffff 90%, #ffffff00 100%);
+        }
+
+        .tableContainer::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tableContainer th {
+            position: sticky;
+            top: 0px;
+            background-color: #ffffff;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="sk-nav" id="navigation">
+        <a class="active" href="/class">수업</a>
+        <!-- <a href="/consult">상담</a> -->
+        <a href="/settings">설정</a>
+    </nav>
+
+    <container class="sk-container">
+        <header class="sk-header">
+            <a class="back" href="/class">
+                <span class="material-icons-round">arrow_back_ios_new</span>
+                <span>수업</span>
+            </a>
+            <a class="title" id="class-name">&nbsp;</a>
+        </header>
+
+        <div class="sk-section">
+            <p class="title">
+                <span>오늘 강의</span>
+            </p>
+            <div id="lecture-today"></div>
+
+            <p class="title">
+                <span>예정된 강의</span>
+                <span class="material-icons-round" onclick="addLecture.open();">add</span>
+            </p>
+            <div id="lecture-scheduled"></div>
+
+            <p class="title">
+                <span>지난 강의</span>
+            </p>
+            <div id="lecture-past"></div>
+        </div>
+
+        <div class="sk-section large">
+            <p class="title">
+                <span>수업 정보</span>
+                <span class="material-icons-round" onclick="editInfo.open();">create</span>
+            </p>
+            <ul>
+                <li>
+                    <span class="sk-list-icon material-icons-round">schedule</span>
+                    <span class="sk-list-text"><b id="class-open"></b> - <b id="class-close"></b></span>
+                </li>
+                <li>
+                    <span class="sk-list-icon material-icons-round">article</span>
+                    <span class="sk-list-text" id="class-note"></span>
+                </li>
+                <li>
+                    <span class="sk-list-icon material-icons-round">account_box</span>
+                    <span class="sk-list-text"><b id="class-teachers"></b> 선생님</span>
+                </li>
+            </ul>
+
+            <p class="title">
+                <span>학생 관리</span>
+                <span class="material-icons-round" onclick="students.add.open();">add</span>
+            </p>
+            <table>
+                <tr>
+                    <th class="small">이름</th>
+                    <th class="small">학교</th>
+                    <th>학생 연락처</th>
+                    <th>학부모 연락처</th>
+                    <th class="small"></th>
+                </tr>
+                <tbody id="class-students"></tbody>
+            </table>
+        </div>
+
+        <footer class="sk-footer">
+            <p>
+                <span class="material-icons-round md-18" onclick="deleteClass.open();">delete_forever</span>
+                <span onclick="deleteClass.open();">수업 삭제</span>
+            </p>
+        </footer>
+    </container>
+
+    <div class="sk-copyright">
+        <p>Copyright © 2022 DaechiRo, Inc., and 2022 sunkyung edu. All rights reserved.</p>
+    </div>
+
+
+    <!-- 강의 추가 -->
+    <div class="sk-modal inactive" id="modal_addLecture">
+        <div class="sk-modal-body">
+            <p class="title">강의 추가하기</p>
+            <form id="form_addLecture" method="POST" onsubmit="return addLecture.save();">
+                <input class="sk-input" type="text" required placeholder="강의명" name="name">
+                <input class="sk-input" type="datetime-local" required data-placeholder="시작 시각" name="open"
+                    onchange="addLecture.autoFill();">
+                <input class="sk-input" type="datetime-local" required data-placeholder="종료 시각" name="close">
+                <input class="sk-input" type="text" required placeholder="강의 정보" name="note">
+                <div class="sk-modal-buttons">
+                    <button type="button" class="sk-button" onclick="addLecture.close();">취소</button>
+                    <button type="submit" class="sk-button colored">저장</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 수업 정보 수정 -->
+    <div class="sk-modal inactive" id="modal_editInfo">
+        <div class="sk-modal-body">
+            <p class="title">수업 정보 수정</p>
+            <form id="form_editInfo" method="POST" onsubmit="return editInfo.save();">
+                <input class="sk-input" type="text" required placeholder="수업명" name="name">
+                <input class="sk-input" type="date" required data-placeholder="개강일" name="open">
+                <input class="sk-input" type="date" required data-placeholder="종강일" name="close">
+                <input class="sk-input" type="text" required placeholder="수업 정보" name="note">
+                <div class="sk-modal-buttons">
+                    <button type="button" class="sk-button" onclick="editInfo.close();">취소</button>
+                    <button type="submit" class="sk-button colored">저장</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 수업 삭제 -->
+    <div class="sk-modal inactive" id="modal_deleteClass">
+        <div class="sk-modal-body alert">
+            <p class="title"><span class="material-icons-round md-48">warning</span></p>
+            <p class="text"><span id="class-name-deleteClass"></span> 수업을 삭제합니다. 이 작업은 되돌릴 수 없습니다.</p>
+            <div class="sk-modal-buttons">
+                <button type="button" class="sk-button" onclick="deleteClass.close();">취소</button>
+                <button type="submit" class="sk-button colored alert" onclick="deleteClass.del();">삭제</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 학생 추가 -->
+    <div class="sk-modal inactive" id="modal_addStudent">
+        <div class="sk-modal-body large">
+            <p class="title">학생 추가하기</p>
+            <input class="sk-input" type="text" required placeholder="이름" name="name" id="query_addStudent"
+                onkeyup="students.add.search();" onpaste="students.add.search();">
+            <div class="tableContainer">
+                <table>
+                    <tr>
+                        <th class="small">이름</th>
+                        <th class="small">학교</th>
+                        <th>학생 연락처</th>
+                        <th class="xxs"></th>
+                    </tr>
+                    <tbody id="tbody_addStudent"></tbody>
+                </table>
+            </div>
+            <div class="sk-modal-buttons">
+                <span></span>
+                <button type="button" class="sk-button colored" onclick="students.add.close();">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 학생 수정 -->
+
+    <!-- 학생 삭제 -->
+    <div class="sk-modal inactive" id="modal_deleteStudent">
+        <div class="sk-modal-body alert">
+            <p class="title"><span class="material-icons-round md-48">warning</span></p>
+            <p class="text"><span id="name_deleteStudent"></span> 학생의 데이터를 [예비 고3] 1등급 다지기 수업에서 삭제합니다. 이 작업은 되돌릴 수 없습니다.
+            </p>
+            <div class="sk-modal-buttons">
+                <button type="button" class="sk-button" onclick="students.del.close();">취소</button>
+                <button type="button" class="sk-button colored alert" id="button_deleteStudent">삭제</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 로딩 화면 -->
+    <div class="sk-modal" id="modal_loading">
+        <div class="sk-loading white"></div>
+    </div>
+
+    <script src="/src/js/class/class.js"></script>
+</body>
+<!-- Designed by daechiro@gmail.com -->
+</html>

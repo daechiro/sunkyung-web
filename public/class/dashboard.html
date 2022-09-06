@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>수업</title>
+
+    <script src="/__/firebase/8.2.1/firebase-app.js"></script>
+    <script src="/__/firebase/8.2.1/firebase-auth.js"></script>
+    <script src="/__/firebase/8.2.1/firebase-firestore.js"></script>
+    <script src="/__/firebase/8.2.1/firebase-analytics.js"></script>
+    <script src="/__/firebase/init.js?useEmulator=true"></script>
+
+    <link rel="stylesheet" type="text/css" href="/src/css/sk.css">
+</head>
+
+<body>
+    <nav class="sk-nav" id="navigation">
+        <a class="active">수업</a>
+        <!-- <a href="/consult">상담</a> -->
+        <a href="/settings">설정</a>
+    </nav>
+
+    <container class="sk-container">
+        <div class="sk-section full">
+            <p class="title">
+                <span>진행중인 수업</span>
+                <span class="material-icons-round" onclick="addClass.open();">add</span>
+            </p>
+            <div class="grid" id="openedClasses"></div>
+        </div>
+        <div class="sk-section full">
+            <p class="title">
+                <span>지난 수업</span>
+            </p>
+            <div class="grid" id="closedClasses"></div>
+        </div>
+    </container>
+
+    <div class="sk-copyright">
+        <p>Copyright © 2022 DaechiRo, Inc., and 2022 sunkyung edu. All rights reserved.</p>
+    </div>
+
+
+    <!-- 수업 추가 -->
+    <div class="sk-modal" id="modal_addClass">
+        <div class="sk-modal-body" style="display: none;">
+            <p class="title">수업 추가하기</p>
+            <form id="form_addClass" onsubmit="return addClass.save();">
+                <input class="sk-input" type="text" required placeholder="수업명">
+                <input class="sk-input" type="date" required data-placeholder="개강일">
+                <input class="sk-input" type="date" required data-placeholder="종강일">
+                <input class="sk-input" type="text" required placeholder="수업 정보">
+                <div class="sk-modal-buttons">
+                    <button type="button" class="sk-button" onclick="addClass.close();">취소</button>
+                    <button type="submit" class="sk-button colored">저장</button>
+                </div>
+            </form>
+        </div>
+        <div class="sk-loading white"></div>
+    </div>
+
+    <script src="/src/js/class/dashboard.js"></script>
+</body>
+<!-- Designed by daechiro@gmail.com -->
+</html>

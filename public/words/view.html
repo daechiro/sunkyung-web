@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Words</title>
+
+    <link rel="stylesheet" type="text/css" href="/src/css/words/view.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="viewer viewer-0 q" id="viewer-0">
+            <div class="progress">
+                <span id="viewer-0-progress-0">&nbsp;</span>
+                <span id="viewer-0-progress-1">&nbsp;</span>
+            </div>
+            <div class="header">
+                <span class="title"><b id="viewer-0-title"></b><span id="viewer-0-subtitle"></span></span>
+                <span class="material-icons-round" onclick="closeViewer();">close</span>
+            </div>
+            <div class="controller">
+                <span class="prev">&nbsp;</span>
+                <span class="next">&nbsp;</span>
+            </div>
+
+            <h1 id="viewer-0-word"></h1>
+            <p class="pronunciations">
+                <span id="viewer-0-pronunciations"></span>
+                <span class="material-icons-round" onclick="read();">volume_up</span>
+            </p>
+            <p class="meanings" id="viewer-0-meanings"></p>
+            <div class="button">
+                <div id="viewer-0-button">
+                    <span class="material-icons-round">check</span>
+                    <span id="viewer-0-button-text">Mark as Memorized</span>
+                </div>
+            </div>
+        </div>
+        <div class="viewer viewer-1 q" id="viewer-1">
+            <div class="progress">
+                <span id="viewer-1-progress-0">&nbsp;</span>
+                <span id="viewer-1-progress-1">&nbsp;</span>
+            </div>
+            <div class="header">
+                <span class="title"><b id="viewer-1-title"></b><span id="viewer-1-subtitle"></span></span>
+                <span class="material-icons-round" onclick="closeViewer();">close</span>
+            </div>
+            <div class="controller">
+                <span class="prev">&nbsp;</span>
+                <span class="next">&nbsp;</span>
+            </div>
+            
+            <h1 id="viewer-1-word"></h1>
+            <p class="pronunciations">
+                <span id="viewer-1-pronunciations"></span>
+                <span class="material-icons-round" onclick="read();">volume_up</span>
+            </p>
+            <p class="meanings" id="viewer-1-meanings"></p>
+            <div class="button">
+                <div id="viewer-1-button">
+                    <span class="material-icons-round">check</span>
+                    <span id="viewer-1-button-text">Mark as Memorized</span>
+                </div>
+            </div>
+        </div>
+        <div class="viewer viewer-2 q" id="viewer-2">
+            <div class="progress">
+                <span id="viewer-2-progress-0">&nbsp;</span>
+                <span id="viewer-2-progress-1">&nbsp;</span>
+            </div>
+            <div class="header">
+                <span class="title"><b id="viewer-2-title"></b><span id="viewer-2-subtitle"></span></span>
+                <span class="material-icons-round" onclick="closeViewer();">close</span>
+            </div>
+            <div class="controller">
+                <span class="prev">&nbsp;</span>
+                <span class="next">&nbsp;</span>
+            </div>
+            
+            <h1 id="viewer-2-word"></h1>
+            <p class="pronunciations">
+                <span id="viewer-2-pronunciations"></span>
+                <span class="material-icons-round" onclick="read();">volume_up</span>
+            </p>
+            <p class="meanings" id="viewer-2-meanings"></p>
+            <div class="button">
+                <div id="viewer-2-button">
+                    <span class="material-icons-round">check</span>
+                    <span id="viewer-2-button-text">Mark as Memorized</span>
+                </div>
+            </div>
+        </div>
+        <div class="viewer viewer-3 q" id="viewer-3">
+            <div class="progress">
+                <span id="viewer-3-progress-0">&nbsp;</span>
+                <span id="viewer-3-progress-1">&nbsp;</span>
+            </div>
+            <div class="header">
+                <span class="title"><b id="viewer-3-title"></b><span id="viewer-3-subtitle"></span></span>
+                <span class="material-icons-round" onclick="closeViewer();">close</span>
+            </div>
+            <div class="controller">
+                <span class="prev">&nbsp;</span>
+                <span class="next">&nbsp;</span>
+            </div>
+            
+            <h1 id="viewer-3-word"></h1>
+            <p class="pronunciations">
+                <span id="viewer-3-pronunciations"></span>
+                <span class="material-icons-round" onclick="read();">volume_up</span>
+            </p>
+            <p class="meanings" id="viewer-3-meanings"></p>
+            <div class="button">
+                <div id="viewer-3-button">
+                    <span class="material-icons-round">check</span>
+                    <span id="viewer-3-button-text">Mark as Memorized</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/__/firebase/8.2.1/firebase-app.js"></script>
+    <script src="/__/firebase/8.2.1/firebase-auth.js"></script>
+    <script src="/__/firebase/8.2.1/firebase-firestore.js"></script>
+    <script src="/__/firebase/init.js?useEmulator=true"></script>
+    <script src="/src/js/words/view.js"></script>
+</body>
+<!-- Designed by daechiro@gmail.com -->
+</html>

@@ -1,0 +1,481 @@
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons+Round');
+/* @font-face {
+    font-family: 'SF-Pro';
+    font-weight: 700;
+    font-style: normal;
+    src: url('SF/SF-Pro-Display-Bold.otf');
+}
+@font-face {
+    font-family: 'SF-Pro';
+    font-weight: 600;
+    font-style: normal;
+    src: url('SF/SF-Pro-Display-Semibold.otf');
+}
+@font-face {
+    font-family: 'SF-Pro';
+    font-weight: 400;
+    font-style: normal;
+    src: url('SF/SF-Pro-Display-Regular.otf');
+}
+@font-face {
+    font-family: 'SF-Pro';
+    font-weight: 300;
+    font-style: normal;
+    src: url('SF/SF-Pro-Display-Light.otf');
+} */
+
+@font-face {
+    font-family: 'NanumSquare';
+    font-weight: 700;
+    font-style: normal;
+    src: url('Square/NanumSquareEB.ttf');
+}
+@font-face {
+    font-family: 'NanumSquare';
+    font-weight: 600;
+    font-style: normal;
+    src: url('Square/NanumSquareB.ttf');
+}
+@font-face {
+    font-family: 'NanumSquare';
+    font-weight: 400;
+    font-style: normal;
+    src: url('Square/NanumSquareR.ttf');
+}
+@font-face {
+    font-family: 'NanumSquare';
+    font-weight: 300;
+    font-style: normal;
+    src: url('Square/NanumSquareL.ttf');
+}
+
+body {
+    width: 100%;
+    /* min-height: 100vh; */
+    margin: 0px 0px 0px 60px;
+    padding: 0px;
+    font-family: 'NanumSquare', sans-serif;
+    background-color: #f2f1f6;
+    opacity: 0;
+    pointer-events: none;
+    user-select: none !important;
+}
+body.loading {
+    background-color: #f2f1f6;
+    background-image: url('/src/image/loading.gif');
+    background-repeat: no-repeat;
+    background-size: 42px 42px;
+    background-attachment: fixed;
+    background-position: calc(50vw - 21px) calc(50vh - 21px);
+}
+body.fixed {
+    margin: 0px;
+}
+body.active {
+    margin: 0px;
+    background-image: none;
+    opacity: 1;
+    pointer-events: auto;
+    /* animation: fadein 300ms; */
+    transition: all 300ms;
+}
+
+.header {
+    width: 100vw;
+    height: 45px;
+    padding: 0px;
+    margin: 0px;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f2f1f680;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px);
+}
+.header p {
+    margin: 0px 0px 0px 4px;
+    display: flex;
+    align-items: center;
+    font-size: 18px;
+    color: #740118;
+}
+.header p.menu::after {
+    margin: 0px 16px 0px 0px;
+    font-size: 18px;
+    content: 'Edit';
+}
+.header p.menu.active::after {
+    font-weight: 700;
+    content: 'Done';
+}
+.header p span.material-icons-round {
+    margin: 0px 0px 0px 3px;
+    font-size: 24px;
+}
+
+.footer {
+    max-width: calc(100% - 28px);
+    height: 24px;
+    margin: 48px 14px 12px 14px;
+    padding: 0px 0px 0px 0px;
+    font-weight: 600;
+    font-size: 8px;
+    text-align: center;
+    color: #6E6E73;
+}
+
+.container {
+    width: calc(100% - 16px * 2);
+    max-width: calc(480px - 16px * 2);
+    min-height: calc(100vh - 84px);
+    margin: 0px;
+    padding: 0px 16px;
+    background-color: #f2f1f6;
+}
+.container h1 {
+    margin: 0px 0px 16px 0px;
+    padding: 72px 0px 0px 0px;
+    font-weight: 700;
+    font-size: 32px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #010103;
+}
+.container h3 {
+    margin: 36px 0px 8px 14px;
+    padding: 0px 0px 0px 0px;
+    font-weight: 400;
+    font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #010103;
+}
+.container h4 {
+    max-width: calc(100% - 28px);
+    margin: 12px 14px 8px 14px;
+    padding: 0px 0px 0px 0px;
+    font-weight: 600;
+    font-size: 13px;
+    text-align: center;
+    color: #010103;
+}
+.container .buttons {
+    margin: 16px 0px 0px 0px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    opacity: 1;
+    pointer-events: auto;
+    transition: all 200ms;
+}
+.container .buttons.hidden {
+    margin: 0px;
+    opacity: 0;
+    pointer-events: none;
+}
+.container .buttons div {
+    height: 44px;
+    width: 100%;
+    flex-grow: 1;
+    margin: 0px 12px 0px 0px;
+    border-radius: 10px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 16px !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #FFFFFF;
+    color: #740118;
+    transition: all 400ms;
+}
+.container .buttons.hidden div {
+    height: 0px;
+}
+.container .buttons div:last-child {
+    margin: 0px;
+}
+.container .buttons div span {
+    margin: 0px 3px 0px 3px;
+}
+.container ul {
+    width: calc(100% - 16px);
+    margin: 8px 0px 0px 0px;
+    padding: 0px 0px 0px 16px;
+    border-radius: 10px;
+    background-color: #ffffff;
+}
+/* .container ul.numbered {
+    width: calc(100% - 16px - 32px);
+} */
+.container ul.numbered div {
+    display: flex;
+    justify-content: left;
+    align-items: center;
+}
+.container ul.numbered div .icon {
+    width: 28px;
+    min-width: 28px;
+    height: 28px;
+    margin: 6px 12px 6px 0px;
+    border-radius: 4px;
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    font-weight: 700;
+    font-size: 14px;
+    background-color: #C7C7C7C7;
+    color: #ffffff;
+}
+.container li {
+    margin: 0px;
+    padding: 12px 0px;
+    border-bottom: 1px solid #C7C7C7C7;
+    list-style: none;
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+}
+
+.container ul.numbered li {
+    width: 100%;
+    height: 40px;
+    padding: 0px;
+    align-items: center;
+}
+.container ul > li:last-child {
+    border-bottom: 0px;
+}
+.container ul.numbered > div:last-child > li {
+    border-bottom: 0px;
+}
+.container ul.numbered li p > span {
+    padding: 4px 0px 0px 8px;
+    font-size: 12px;
+    font-weight: 400;
+    color: #6E6E73;
+}
+
+.container li * { 
+    padding: 2px 0px 2px 0px;
+}
+.container li span:last-child {
+    font-weight: 400;
+    text-align: right;
+    padding: 2px 15px 2px 0px;
+    color: #6E6E73;
+}
+
+.container li.title {
+    border-bottom: 0px;
+}
+.container li.title p {
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+}
+.container li.title p span:last-child {
+    font-size: 14px;
+    font-weight: 400;
+    text-align: right;
+    padding: 3px 15px 3px 0px;
+    color: #6E6E73;
+}
+.container li.comment {
+    padding: 6px 15px 6px 0px;
+    border-bottom: 0px;
+    font-size: 12px;
+    font-weight: 400;
+    color: #6E6E73;
+}
+.container li.link {
+    color: #06c;
+}
+.container li.no-padding-top {
+    padding-top: 0px
+}
+.container li.no-padding-bottom {
+    padding-bottom: 0px
+}
+
+.container li::after {
+    font-family: 'Material Icons Round';
+    content: 'arrow_forward_ios';
+    padding: 2px 15px 2px 0px;
+    color: #C7C7C7;
+    opacity: 1;
+    pointer-events: auto;
+    transition: opacity 300ms;
+}
+
+.container li.attendance::after {
+    font-family: 'NanumSquare', sans-serif;
+    font-weight: 400;
+    pointer-events: none;
+    content: '정보 없음';
+    color: #6E6E73;
+}
+.container li.attendance.true::after {
+    content: '출석';
+    color: #65C466;
+}
+.container li.attendance.false::after {
+    content: '결석';
+    color: #EB4D3D;
+}
+
+.container li.assignment::after {
+    font-family: 'NanumSquare', sans-serif;
+    font-weight: 400;
+    pointer-events: none;
+    content: '정보 없음';
+    color: #6E6E73;
+}
+.container li.assignment.true::after {
+    content: '제출';
+    color: #65C466;
+}
+.container li.assignment.false::after {
+    content: '미제출';
+    color: #EB4D3D;
+}
+
+.container li.test::after {
+    font-family: 'NanumSquare', sans-serif;
+    font-weight: 400;
+    pointer-events: none;
+    content: '정보 없음';
+    color: #6E6E73;
+}
+.container li.test.true::after {
+    content: '○';
+    color: #65C466;
+    font-weight: 700;
+}
+.container li.test.false::after {
+    content: '⨉';
+    padding: 2px 16px 2px 0px;
+    color: #EB4D3D;
+    font-weight: 700;
+}
+
+.container li.disabled::after {
+    display: none;
+    pointer-events: none;
+}
+
+
+.graph-histogram {
+    width: 100%;
+    margin: 0px 20px 0px 5px;
+    padding: 0px;
+}
+.graph-histogram .graph--container {
+    width: 100%;
+    height: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+.graph-histogram .graph--container div {
+    padding: 0px;
+    height: 3px;
+    width: 6px;
+    border-radius: 6px 6px 0px 0px;
+    background-color: #C7C7C7;
+}
+.graph-histogram .graph--container div.dark {
+    background-color: #6E6E73;
+}
+.graph-histogram .graph--container div.colored {
+    background-color: #740118;
+}
+
+.graph-dot {
+    width: 100%;
+    margin: 0px 20px 0px 5px;
+    padding: 0px;
+}
+.graph-dot .graph--container {
+    width: 100%;
+    height: 80px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+.graph-dot .graph--container > div {
+    padding: 0px;
+    height: 80px;
+    width: 8px;
+    position: relative;
+}
+.graph-dot .graph--container > div > div {
+    height: 8px;
+    width: 8px;
+    padding: 0px;
+    border-radius: 8px;
+    display: block;
+    position: absolute;
+    bottom: 0px;
+}
+.graph-dot .graph--container > div > div.dark {
+    height: 4px;
+    width: 4px;
+    border: solid 2px #6E6E73;
+    background-color: #FFFFFF;
+}
+.graph-dot .graph--container > div > div.colored {
+    background-color: #740118;
+}
+.graph-dot .graph--container > div > div.bar {
+    height: 30px;
+    width: 2px;
+    padding: 0px;
+    margin: 3px;
+    border-radius: 2px;
+    display: block;
+    position: absolute;
+    bottom: 0px;
+    background-color: #C7C7C7;
+}
+
+.graph--index {
+    width: 100%;
+    display: flex;
+    justify-content: left;
+}
+.graph--index p {
+    margin: 5px 20px 0px 0px;
+    padding: 0px;
+    font-size: 12px;
+    font-weight: 400;
+    display: flex;
+    align-items: center;
+}
+.graph--index p span {
+    width: 6px;
+    height: 6px;
+    margin: 0px 5px 0px 0px;
+    padding: 0px !important;
+    border-radius: 6px;
+    background-color: #C7C7C7;
+}
+.graph--index p span.dark {
+    height: 2px;
+    width: 2px;
+    border: solid 2px #6E6E73;
+    background-color: #FFFFFF;
+}
+.graph--index p span.colored {
+    background-color: #740118;
+}

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>선경어학원 - 강의 정보</title>
+
+    <link rel="stylesheet" type="text/css" href="/src/css/app/main.css">
+</head>
+
+<body>
+    <div class="header">
+        <p onclick="back();">
+            <span class="material-icons-round">arrow_back_ios_new</span>
+            <span id="student">&nbsp;</span>
+        </p>
+    </div>
+    <div class="container">
+        <h1 id="name"></h1>
+        <ul id="banner"></ul>
+        <ul id="list-0"></ul>
+
+        <!-- <h3 id="list-1-title">지난 수업</h3>
+        <ul id="list-1"></ul> -->
+        <div id="list-1"></div>
+
+        <h3 id="list-2-title">예정된 수업</h3>
+        <ul id="list-2"></ul>
+        
+        <h3>강의 정보</h3>
+        <ul>
+            <li class="disabled">
+                <span>강사</span>
+                <span id="info-teacher"></span>
+            </li>
+            <li class="disabled">
+                <span>기간</span>
+                <span id="info-time"></span>
+            </li>
+        </ul>
+    </div>
+    <h6 class="footer">Copyright © 2022 DaechiRo, Inc., and 2022 sunkyung edu.<br>All rights reserved.</h6>
+
+    <script src="/__/firebase/8.2.1/firebase-app.js"></script>
+    <script src="/__/firebase/8.2.1/firebase-auth.js"></script>
+    <script src="/__/firebase/8.2.1/firebase-firestore.js"></script>
+    <script src="/__/firebase/init.js?useEmulator=true"></script>
+    <script src="/src/js/app/class.js"></script>
+</body>
+<!-- Designed by daechiro@gmail.com -->
+</html>

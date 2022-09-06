@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title id="lecture-title"></title>
+
+    <script src="/__/firebase/8.2.1/firebase-app.js"></script>
+    <script src="/__/firebase/8.2.1/firebase-auth.js"></script>
+    <script src="/__/firebase/8.2.1/firebase-firestore.js"></script>
+    <script src="/__/firebase/8.2.1/firebase-analytics.js"></script>
+    <script src="/__/firebase/init.js?useEmulator=true"></script>
+
+    <link rel="stylesheet" type="text/css" href="/src/css/sk.css">
+</head>
+
+<body>
+    <nav class="sk-nav" id="navigation">
+        <a class="active" href="/class">수업</a>
+        <!-- <a href="/consult">상담</a> -->
+        <a href="/settings">설정</a>
+    </nav>
+
+    <container class="sk-container">
+        <header class="sk-header">
+            <a class="back" id="class-classId">
+                <span class="material-icons-round">arrow_back_ios_new</span>
+                <span id="class-name"></span>
+            </a>
+            <a class="title" id="lecture-name">&nbsp;</a>
+        </header>
+
+        <div class="sk-section">
+            <p class="title">
+                <span>시험</span>
+                <span class="material-icons-round" onclick="addTest.open();">add</span>
+            </p>
+            <div id="tests"></div>
+        </div>
+
+        <div class="sk-section large">
+            <p class="title">
+                <span>강의 정보</span>
+                <span class="material-icons-round" onclick="editInfo.open();">create</span>
+            </p>
+            <ul>
+                <li>
+                    <span class="sk-list-icon material-icons-round">schedule</span>
+                    <span class="sk-list-text"><b id="lecture-open"></b> - <b id="lecture-close"></b></span>
+                </li>
+                <li>
+                    <span class="sk-list-icon material-icons-round">article</span>
+                    <span class="sk-list-text" id="lecture-note"></span>
+                </li>
+                <li>
+                    <span class="sk-list-icon material-icons-round">videocam</span>
+                    <span class="sk-list-text" id="lecture-videos"></span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sk-section full">
+            <p class="title">
+                <span>학생 관리</span>
+                <span class="material-icons-round" onclick="refreshStudents();">refresh</span>
+            </p>
+            <table>
+                <thead id="lecture-students-header"></thead>
+                <tbody id="lecture-students"></tbody>
+            </table>
+        </div>
+
+        <footer class="sk-footer">
+            <p>
+                <span class="material-icons-round md-18" onclick="deleteLecture.open();">delete_forever</span>
+                <span onclick="deleteLecture.open();">강의 삭제</span>
+            </p>
+        </footer>
+    </container>
+
+    <div class="sk-copyright">
+        <p>Copyright © 2022 DaechiRo, Inc., and 2022 sunkyung edu. All rights reserved.</p>
+    </div>
+
+    <!-- 시험 추가 -->
+    <div class="sk-modal inactive" id="modal_addTest">
+        <div class="sk-modal-body">
+            <p class="title">시험 추가하기</p>
+            <form id="form_addTest" method="POST" onsubmit="return addTest.save();">
+                <input class="sk-input" type="text" required placeholder="시험 제목" name="name">
+                <select class="sk-select" required name="type">
+                    <option value="" style="display: none;">시험 유형</option>
+                    <optgroup label="단어시험">
+                        <option value="VOCA">단어시험</option>
+                    </optgroup>
+                    <optgroup label="모의고사">
+                        <option value="T-12">미니 (12 문항)</option>
+                        <option value="T-15">하프 (15 문항)</option>
+                        <option value="T-45">풀세트 (45 문항)</option>
+                    </optgroup>
+                    <optgroup label="기타">
+                        <option value="others">기타</option>
+                    </optgroup>
+                </select>
+                <input class="sk-input" type="text" required placeholder="시험 정보" name="note">
+                <div class="sk-modal-buttons">
+                    <button type="button" class="sk-button" onclick="addTest.close();">취소</button>
+                    <button type="submit" class="sk-button colored">저장</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 강의 정보 수정 -->
+    <div class="sk-modal inactive" id="modal_editInfo">
+        <div class="sk-modal-body">
+            <p class="title">강의 정보 수정</p>
+            <form id="form_editInfo" method="POST" onsubmit="return editInfo.save();">
+                <input class="sk-input" type="text" required placeholder="강의명" name="name">
+                <input class="sk-input" type="datetime-local" required data-placeholder="시작 시각" name="open"
+                    onchange="editInfo.autoFill();">
+                <input class="sk-input" type="datetime-local" required data-placeholder="종료 시각" name="close">
+                <input class="sk-input" type="text" required placeholder="강의 정보" name="note">
+                <input class="sk-input" type="text" placeholder="영상 링크" name="video">
+                <div class="sk-modal-buttons">
+                    <button type="button" class="sk-button" onclick="editInfo.close();">취소</button>
+                    <button type="submit" class="sk-button colored">저장</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 출결 정보 변경 -->
+    <div class="sk-modal inactive" id="modal_students_attend">
+        <div class="sk-modal-body alert">
+            <p class="title"><span class="material-icons-round md-48">flaky</span></p>
+            <p class="text">현재 시각(<span id="time_students_attend"></span>)으로 <span id="name_students_attend"></span> 학생의 출결 정보를 변경합니다. 출결 알림이 전송될 수 있습니다.</p>
+            <div class="sk-modal-buttons">
+                <button class="sk-button" onclick="students.attend.close();">취소</button>
+                <span></span>
+                <span></span>
+                <span></span>
+                <button class="sk-button colored" onclick="students.attend.save(true);">출석</button>
+                <button class="sk-button colored alert" onclick="students.attend.save(false);">결석</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 과제 정보 변경 -->
+    <div class="sk-modal inactive" id="modal_students_assignment">
+        <div class="sk-modal-body">
+            <p class="title"><span class="material-icons-round md-48">assignment_turned_in</span></p>
+            <p class="text"><span id="name_students_assignment"></span> 학생의 <span id="type_assignment"></span> 과제 정보를 변경합니다.</p>
+            <br>
+            <form id="form_students_assignment" method="POST" onsubmit="return false">
+                <input class="sk-input" type="text" placeholder="Leave comments" name="comment">
+            </form>
+            <div class="sk-modal-buttons">
+                <button class="sk-button" onclick="students.assignment.close();">취소</button>
+                <span></span>
+                <span></span>
+                <span></span>
+                <button class="sk-button colored" onclick="students.assignment.save(true);">제출</button>
+                <button class="sk-button colored alert" onclick="students.assignment.save(false);">미제출</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 성적 입력 -->
+    <div class="sk-modal inactive" id="modal_students_grade">
+        <div class="sk-modal-body" style="width: 655px;">
+            <p class="title">성적 입력 - <span id="studentName_students_grade"></span>, <span id="testName_students_grade"></span></p>
+            <p>총점: <span id="testPoints_students_grade"></span></p>
+            <form id="form_students_grade" method="POST" onsubmit="return students.grade.save();">
+                <div id="obj_students_grade">
+                    <p>객관식 문항 답안 입력 (답안이 없는 경우 비워둠)</p>
+                    <div id="answersContainer"></div>
+                    <br>
+                </div>
+                <div id="sub_students_grade">
+                    <p>주관식 문항 점수 입력</p>
+                    <div id="pointsContainer"></div>
+                </div>
+                <br>
+                <input class="sk-input" id="comment_students_grade" type="text" placeholder="Leave comments" name="comment">
+                <div class="sk-modal-buttons">
+                    <button type="button" class="sk-button" onclick="students.grade.close();">취소</button>
+                    <button type="submit" class="sk-button colored">저장</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 강의 삭제 -->
+    <div class="sk-modal inactive" id="modal_deleteLecture">
+        <div class="sk-modal-body alert">
+            <p class="title"><span class="material-icons-round md-48">warning</span></p>
+            <p class="text"><span id="lecture-name-deleteLecture"></span> 강의를 삭제합니다. 이 작업은 되돌릴 수 없습니다.</p>
+            <div class="sk-modal-buttons">
+                <button type="button" class="sk-button" onclick="deleteLecture.close();">취소</button>
+                <button type="submit" class="sk-button colored alert" onclick="deleteLecture.del();">삭제</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 로딩 화면 -->
+    <div class="sk-modal" id="modal_loading">
+        <div class="sk-loading white"></div>
+    </div>
+
+    <script src="/src/js/class/lecture.js"></script>
+</body>
+<!-- Designed by daechiro@gmail.com -->
+</html>

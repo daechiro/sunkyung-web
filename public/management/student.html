@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title id="class-title">Admin - Students</title>
+
+    <script src="/__/firebase/8.2.1/firebase-app.js"></script>
+    <script src="/__/firebase/8.2.1/firebase-auth.js"></script>
+    <script src="/__/firebase/8.2.1/firebase-firestore.js"></script>
+    <script src="/__/firebase/8.2.1/firebase-functions.js"></script>
+    <script src="/__/firebase/8.2.1/firebase-analytics.js"></script>
+    <script src="/__/firebase/init.js?useEmulator=true"></script>
+
+    <link rel="stylesheet" type="text/css" href="/src/css/sk.css">
+</head>
+
+<body>
+    <nav class="sk-nav">
+        <!-- <a href="/class">수업</a> -->
+        <a class="active" href="/management/student">학생</a>
+        <!-- <a href="/management/teacher">강사</a> -->
+        <!-- <a href="/words/manage">단어</a> -->
+        <!-- <a href="/management/settings">설정</a> -->
+    </nav>
+
+    <container class="sk-container">
+        <div class="sk-section full" style="display: none;">
+            <p class="title">&nbsp;</p>
+            <div class="search-container">
+                <select class="sk-select search-option" name="type">
+                    <option value="name">이름</option>
+                    <option value="schoolName">학교</option>
+                    <option value="schoolYear">학년</option>
+                    <option value="schoolStatus">상태</option>
+                    <option value="phone">전화번호</option>
+                    <option value="className">수업명</option>
+                </select>
+                <input class="sk-input search-query" type="text" placeholder="검색" name="query">
+            </div>
+        </div>
+        <div class="sk-section full">
+            <p class="title">
+                <span>학생 목록</span>
+                <span class="material-icons-round" onclick="students.add.open();">add</span>
+            </p>
+            <table>
+                <thead>
+                    <tr>
+                        <th class="small" style="cursor: pointer;" onclick="refresh();">이름</th>
+                        <th class="large" style="cursor: pointer;" onclick="refresh({ orderBy: 'schoolName' });">학교</th>
+                        <th class="xs center" style="cursor: pointer;" onclick="refresh({ orderBy: 'schoolYear' });">학년</th>
+                        <th class="xs center">상태</th>
+                        <th>학생 연락처</th>
+                        <th>학부모 연락처</th>
+                        <th>수강 정보</th>
+                        <th class="small"></th>
+                    </tr>
+                </thead>
+                <tbody id="students"></tbody>
+            </table>
+        </div>
+    </container>
+
+    <div class="sk-copyright">
+        <p>Copyright © 2022 DaechiRo, Inc., and 2022 sunkyung edu. All rights reserved.</p>
+    </div>
+
+    <!-- 학생 추가 -->
+    <div class="sk-modal inactive" id="modal_addStudent">
+        <div class="sk-modal-body large">
+            <p class="title">학생 추가하기</p>
+            <form id="form_addStudent" method="POST" onsubmit="return students.add.add();">
+                <p>기본 정보</p>
+                <input class="sk-input" type="text" required placeholder="이름" name="name">
+                <input class="sk-input" type="text" required pattern="010[0-9]{8}" title="010XXXXXXXX" placeholder="학생 연락처" name="phone">
+                <input class="sk-input" type="text" pattern="010[0-9]{8}" title="010XXXXXXXX" placeholder="학부모 연락처" name="phone_parent">
+                <p>학교 정보</p>
+                <input class="sk-input" type="text" required placeholder="학교" name="schoolName">
+                <input class="sk-input" type="number" required placeholder="학년" name="schoolYear">
+                <select class="sk-select" required name="schoolStatus">
+                    <option style="display: none;" value="">상태</option>
+                    <option value="IN">재학</option>
+                    <option value="OFF">휴학</option>
+                    <option value="GRADUATED">졸업</option>
+                </select>
+                <div class="sk-modal-buttons">
+                    <button type="button" class="sk-button" onclick="students.add.close();">취소</button>
+                    <button type="submit" class="sk-button colored">저장</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 학생 수정 -->
+    <div class="sk-modal inactive" id="modal_editStudent">
+        <div class="sk-modal-body large">
+            <p class="title">학생 정보 변경</p>
+            <form id="form_editStudent" method="POST" onsubmit="return students.edit.edit();">
+                <p>기본 정보</p>
+                <input class="sk-input" type="text" required placeholder="이름" name="name">
+                <input class="sk-input" type="text" required pattern="010[0-9]{8}" title="010XXXXXXXX" placeholder="학생 연락처" name="phone">
+                <input class="sk-input" type="text" pattern="010[0-9]{8}" title="010XXXXXXXX" placeholder="학부모 연락처" name="phone_parent">
+                <p>학교 정보</p>
+                <input class="sk-input" type="text" required placeholder="학교" name="schoolName">
+                <input class="sk-input" type="number" required placeholder="학년" name="schoolYear">
+                <select class="sk-select" required name="schoolStatus">
+                    <option style="display: none;" value="">상태</option>
+                    <option value="IN">재학</option>
+                    <option value="OFF">휴학</option>
+                    <option value="GRADUATED">졸업</option>
+                </select>
+                <div class="sk-modal-buttons">
+                    <button type="button" class="sk-button" onclick="students.edit.close();">취소</button>
+                    <button type="submit" class="sk-button colored">저장</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 학생 삭제 -->
+    <div class="sk-modal inactive" id="modal_deleteStudent">
+        <div class="sk-modal-body alert">
+            <p class="title"><span class="material-icons-round md-48">warning</span></p>
+            <p class="text"><span id="name_deleteStudent"></span> 학생의 데이터를 삭제합니다. 이 작업은 되돌릴 수 없습니다.
+            </p>
+            <div class="sk-modal-buttons">
+                <button type="button" class="sk-button" onclick="students.del.close();">취소</button>
+                <button type="button" class="sk-button colored alert" onclick="students.del.del();">삭제</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 로딩 화면 -->
+    <div class="sk-modal" id="modal_loading">
+        <div class="sk-loading white"></div>
+    </div>
+
+    <script src="/src/js/management/student.js"></script>
+</body>
+<!-- Designed by daechiro@gmail.com -->
+
+</html>

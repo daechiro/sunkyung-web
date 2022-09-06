@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Words</title>
+
+    <link rel="stylesheet" type="text/css" href="/src/css/words/main.css">
+</head>
+
+<body>
+    <div class="header">
+        <p onclick="back();">
+            <span class="material-icons-round">arrow_back_ios_new</span>
+            Books
+        </p>
+    </div>
+    <div class="container">
+        <h1 id="name">&nbsp;</h1>
+
+        <ul>
+            <li onclick="location.pathname += '/select-groups'">Select multiple groups</li>
+        </ul>
+
+        <h3>All groups</h3>
+        <ul id="list"></ul>
+        <div style="height: 72px;"></div>
+    </div>
+
+    <script src="/__/firebase/8.2.1/firebase-app.js"></script>
+    <script src="/__/firebase/8.2.1/firebase-auth.js"></script>
+    <script src="/__/firebase/8.2.1/firebase-firestore.js"></script>
+    <script src="/__/firebase/init.js?useEmulator=true"></script>
+    <script src="/src/js/words/class-b.js"></script>
+</body>
+<!-- Designed by daechiro@gmail.com -->
+</html>

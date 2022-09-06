@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>선경어학원 - 학생 정보</title>
+
+    <link rel="stylesheet" type="text/css" href="/src/css/app/main.css">
+</head>
+
+<body class="fixed">
+    <div id="header" class="header" style="display: none;">
+        <p onclick="back();">
+            <span class="material-icons-round">arrow_back_ios_new</span>
+            학생
+        </p>
+    </div>
+    <div class="container">
+        <h1 id="name">&nbsp;</h1>
+
+        <!-- <h3>All groups</h3> -->
+        <ul id="list">
+            <li class="disabled">등록된 강의가 없습니다</li>
+        </ul>
+    </div>
+    <h6 class="footer">Copyright © 2022 DaechiRo, Inc., and 2022 sunkyung edu.<br>All rights reserved.</h6>
+
+    <script src="/__/firebase/8.2.1/firebase-app.js"></script>
+    <script src="/__/firebase/8.2.1/firebase-auth.js"></script>
+    <script src="/__/firebase/8.2.1/firebase-firestore.js"></script>
+    <script src="/__/firebase/init.js?useEmulator=true"></script>
+    <script src="/src/js/app/student.js"></script>
+</body>
+<!-- Designed by daechiro@gmail.com -->
+</html>

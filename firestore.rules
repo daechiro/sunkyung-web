@@ -1,0 +1,101 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    allow read, write: if false;
+  
+  	function isManager() {
+    	return exists(/databases/$(database)/documents/managers/$(request.auth.uid));
+    }
+
+  	function isStudent() {
+    	return exists(/databases/$(database)/documents/students/$(request.auth.uid)) || isManager();
+    }
+
+  	function isTeacher() {
+    	return exists(/databases/$(database)/documents/teachers/$(request.auth.uid)) || isManager();
+    }
+
+  	function isParent(UID) {
+    	return request.auth.uid == get(/databases/$(database)/documents/students/$(UID)).data.parent;
+    }
+  
+  	function hasMemberAccess(UID) {
+    	return request.auth.uid == UID || isParent(UID) || isManager() || isTeacher();
+    }
+    
+    function accessibleMemberData() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['mail', 'school', 'classes', 'words']);
+    }
+
+    function validClassInitData() {
+      return 'name' in request.resource.data && 'teachers' in request.resource.data && request.resource.data.teachers[0] == request.auth.uid && 'students' in request.resource.data && request.resource.data.students == [] && 'open' in request.resource.data && 'close' in request.resource.data && request.resource.data.open <= request.resource.data.close && 'note' in request.resource.data;
+    }
+
+  
+    match /members_inactive/{random_id} {
+    	allow read, write: if false;
+    }
+    
+    match /students/{UID} {
+      allow read: if hasMemberAccess(UID);
+      allow create, delete: if false;
+      allow update: if isManager() || (hasMemberAccess(UID) && accessibleMemberData());
+    }
+    
+    match /parents/{UID} {
+      allow read:  if hasMemberAccess(UID);
+      allow write: if false;
+    }
+
+    match /teachers/{UID} {
+      allow read:  if request.auth.uid != null;
+      allow write: if false;
+    }
+
+    match /managers/{UID} {
+      allow read:  if isManager();
+      allow write: if false;
+    }
+
+    function isClassTeacher(classId) {
+      return (isTeacher() && (request.auth.uid in get(/databases/$(database)/documents/classes/$(classId)).data.teachers)) || isManager();
+    }
+        
+    match /classes/{classId} {
+      allow read: if request.auth.uid != null;
+      allow create: if isTeacher() && validClassInitData();
+      allow update, delete: if isClassTeacher(classId);
+
+      match /lectures/{lectureId} {
+        allow read:  if request.auth.uid != null;
+        allow write: if isClassTeacher(classId);
+
+        match /attendance/{UID} {
+          allow read:  if hasMemberAccess(UID);
+          allow write: if isClassTeacher(classId);
+        }
+        
+        match /tests/{testId} {
+          allow read: if isTeacher();
+          // allow read: if request.auth.uid != null;
+          allow write: if isClassTeacher(classId);
+
+          match /grade/{UID} {
+            allow read:  if hasMemberAccess(UID);
+            allow write: if isTeacher();
+          }
+        }
+      }
+    }
+
+    match /words/{x} {
+      allow read: if isStudent() || isTeacher();
+      allow write: if isManager();
+
+      match /groups/{y} {
+        allow read: if isStudent() || isTeacher();
+        allow write: if isManager();
+      }
+    }
+  }
+}

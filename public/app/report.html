@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>선경어학원 - 성적 분석</title>
+
+    <link rel="stylesheet" type="text/css" href="/src/css/app/main.css">
+</head>
+
+<body class="loading">
+    <div class="header">
+        <p onclick="back();">
+            <span class="material-icons-round">arrow_back_ios_new</span>
+            <span id="class">&nbsp;</span>
+        </p>
+    </div>
+    <div class="container">
+        <h1>성적 분석</h1>
+        <h3 id="list-1-title" style="display: none;">모의고사</h3>
+        <ul id="list-1" style="display: none;">
+            <li class="disabled">
+                <div class="graph-dot">
+                    <div class="graph--container" id="list-1-graphContainer"></div>
+                    <div class="graph--index">
+                        <p><span class="colored"></span>내 점수</p>
+                        <p><span class="dark"></span>평균 점수</p>
+                    </div>
+                </div>
+            </li>
+        </ul>
+        <h3 id="list-2-title" style="display: none;">하프 모의고사</h3>
+        <ul id="list-2" style="display: none;">
+            <li class="disabled">
+                <div class="graph-dot">
+                    <div class="graph--container" id="list-2-graphContainer"></div>
+                    <div class="graph--index">
+                        <p><span class="colored"></span>내 점수</p>
+                        <p><span class="dark"></span>평균 점수</p>
+                    </div>
+                </div>
+            </li>
+        </ul>
+        <h3 id="list-3-title" style="display: none;">미니 모의고사</h3>
+        <ul id="list-3" style="display: none;">
+            <li class="disabled">
+                <div class="graph-dot">
+                    <div class="graph--container" id="list-3-graphContainer"></div>
+                    <div class="graph--index">
+                        <p><span class="colored"></span>내 점수</p>
+                        <p><span class="dark"></span>평균 점수</p>
+                    </div>
+                </div>
+            </li>
+        </ul>
+        
+        <h3>유형별 정답률</h3>
+        <ul class="numbered" id="list-4"></ul>
+    </div>
+    <h6 class="footer">Copyright © 2022 DaechiRo, Inc., and 2022 sunkyung edu.<br>All rights reserved.</h6>
+
+    <script src="/__/firebase/8.2.1/firebase-app.js"></script>
+    <script src="/__/firebase/8.2.1/firebase-auth.js"></script>
+    <script src="/__/firebase/8.2.1/firebase-firestore.js"></script>
+    <script src="/__/firebase/8.2.1/firebase-functions.js"></script>
+    <script src="/__/firebase/init.js?useEmulator=true"></script>
+    <script src="/src/js/app/report.js"></script>
+</body>
+<!-- Designed by daechiro@gmail.com -->
+</html>

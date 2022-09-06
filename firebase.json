@@ -1,0 +1,114 @@
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "functions": {
+    "source": "functions"
+  },
+  "hosting": {
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "redirects": [ {
+      "source": "/",
+      "destination": "/app/students.html",
+      "type": 301
+    }],
+    "rewrites": [
+      {
+        "source": "/admin",
+        "destination": "/admin/manage.html"
+      },
+      {
+        "source": "/management",
+        "destination": "/management/student.html"
+      },
+      
+      {
+        "source": "/class",
+        "destination": "/class/dashboard.html"
+      },
+      {
+        "source": "/class/*",
+        "destination": "/class/class.html"
+      },
+      {
+        "source": "/class/*/*",
+        "destination": "/class/lecture.html"
+      },
+      {
+        "source": "/class/*/*/*",
+        "destination": "/class/test.html"
+      },
+
+      {
+        "source": "/words",
+        "destination": "/words/class-a.html"
+      },
+      {
+        "source": "/words/*",
+        "destination": "/words/class-b.html"
+      },
+      {
+        "source": "/words/*/select-groups",
+        "destination": "/words/class-b-multi.html"
+      },
+      {
+        "source": "/words/*/*",
+        "destination": "/words/class-c.html"
+      },
+
+      {
+        "source": "/app",
+        "destination": "/app/students.html"
+      },
+      {
+        "source": "/app/*",
+        "destination": "/app/student.html"
+      },
+      {
+        "source": "/app/*/*",
+        "destination": "/app/class.html"
+      },
+      {
+        "source": "/app/*/*/report",
+        "destination": "/app/report.html"
+      },
+      {
+        "source": "/app/*/*/*",
+        "destination": "/app/lecture.html"
+      },
+      {
+        "source": "/app/*/*/*/*",
+        "destination": "/app/test.html"
+      }
+    ],
+    "cleanUrls": true,
+
+    "headers": [ {
+      "source" : "**",
+      "headers" : [ {
+        "key" : "Access-Control-Allow-Origin",
+        "value" : "*"
+      }]
+    }]
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "emulators": {
+    "functions": {
+      "port": 5001
+    },
+    "hosting": {
+      "port": 5555
+    },
+    "ui": {
+      "enabled": true
+    }
+  }
+}

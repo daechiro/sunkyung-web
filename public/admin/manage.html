@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin</title>
+
+    <link rel="stylesheet" type="text/css" href="/admin/manage.css">
+</head>
+
+<body>
+    <div class="header">
+        <p>Admin</p>
+        <!-- <p onclick="back();">
+            <span class="material-icons-round">arrow_back_ios_new</span>
+            Words
+        </p> -->
+    </div>
+    <div id="container" class="container active">
+        <!-- 0 -->
+        <section id="menu" class="active">
+            <h5>Direct Links</h5>
+            <ul>
+                <li class="link" onclick="window.open('/class', '_blank').focus();">수업 관리</li>
+                <li class="link" onclick="window.open('/management/student', '_blank').focus();">학생 관리</li>
+            </ul>
+            <h5>Students</h5>
+            <ul>
+                <li id="open__students_add" onclick="openSection(1, 'students_add');">Add new student</li>
+                <li id="open__students_main" onclick="openSection(1, 'students_main');">Manage students</li>
+            </ul>
+            <h5>Teachers</h5>
+            <ul>
+                <li id="open__teachers_add" onclick="openSection(1, 'teachers_add');">Add new teacher</li>
+                <li id="open__teachers_main" onclick="openSection(1, 'teachers_main');">Manage teachers</li>
+            </ul>
+            <h5>Words</h5>
+            <ul>
+                <li id="open__words_uploadBook" onclick="openSection(1, 'words_uploadBook');">Upload new book</li>
+                <li id="open__words_manageBooks_A" onclick="openSection(1, 'words_manageBooks_A');">Manage books</li>
+            </ul>
+        </section>
+
+        <!-- students -->
+        <!-- 1 -->
+        <section id="students_add">
+            <h3>Add new student</h3>
+            <form id="students_add__form" method="post" onsubmit="openSection(1, 'students_main', null, 'SA'); return false;">
+                <p>기본 정보</p>
+                <p>
+                    <span>이름</span>
+                    <input type="text" required placeholder="Enter here" name="name">
+                </p>
+                <p>
+                    <span>학생 연락처</span>
+                    <input type="text" required pattern="010[0-9]{8}" title="010XXXXXXXX" placeholder="Format: 01087654321" name="phone">
+                </p>
+                <p>
+                    <span>학부모 연락처</span>
+                    <input type="text" pattern="010[0-9]{8}" title="010XXXXXXXX" placeholder="Format: 01087654321" name="phone_parent">
+                </p>
+                <br>
+                <p>학교 정보</p>
+                <p>
+                    <span>학교</span>
+                    <input type="text" required placeholder="Enter here" name="schoolName">
+                </p>
+                <p>
+                    <span>학년</span>
+                    <input type="number" required placeholder="Enter here" name="schoolYear" value="3" min="1" max="3" step="1">
+                </p>
+                <p>
+                    <span>상태</span>
+                    <select required name="schoolStatus">
+                        <!-- <option style="display: none;" value="">Choose</option> -->
+                        <option value="IN">재학</option>
+                        <option value="OFF">휴학</option>
+                        <option value="GRADUATED">졸업</option>
+                    </select>
+                </p>
+                <button type="submit" disabled style="display: none;"></button>
+                <button type="submit" id="students_add__save" class="button">
+                    <span class="material-icons-round">add</span>
+                    <span>Submit</span>
+                </button>
+            </form>
+        </section>
+        <section id="students_main">
+            <h5>&nbsp;</h5>
+            <ul id="students_main__list"></ul>
+        </section>
+        <!-- 2 -->
+        <section id="students_edit">
+            <h3>&nbsp;</h3>
+            <form id="students_edit__form" method="post" onsubmit="openSection(1, 'students_main', null, 'SE'); return false;" onchange="students_edit__updated();">
+                <p>기본 정보</p>
+                <p>
+                    <span>이름</span>
+                    <input type="text" required placeholder="Enter here" name="name">
+                </p>
+                <p>
+                    <span>학생 연락처</span>
+                    <input type="text" disabled required pattern="010[0-9]{8}" title="010XXXXXXXX" placeholder="Format: 01087654321" name="phone">
+                </p>
+                <p>
+                    <span>학부모 연락처</span>
+                    <input type="text" disabled pattern="010[0-9]{8}" title="010XXXXXXXX" placeholder="Unknown" name="phone_parent">
+                </p>
+                <br>
+                <p>학교 정보</p>
+                <p>
+                    <span>학교</span>
+                    <input type="text" required placeholder="Enter here" name="schoolName">
+                </p>
+                <p>
+                    <span>학년</span>
+                    <input type="number" required placeholder="Enter here" name="schoolYear" value="3" min="1" max="3" step="1">
+                </p>
+                <p>
+                    <span>상태</span>
+                    <select required name="schoolStatus">
+                        <!-- <option style="display: none;" value="">Choose</option> -->
+                        <option value="IN">재학</option>
+                        <option value="OFF">휴학</option>
+                        <option value="GRADUATED">졸업</option>
+                    </select>
+                </p>
+                <br>
+                <p>수강 정보</p>
+                <p>
+                    <span id="students_edit__form_className"></span>
+                </p>
+                <button type="submit" disabled style="display: none;"></button>
+                <button type="submit" id="students_edit__save" class="button hidden">
+                    <span class="material-icons-round">done</span>
+                    <span>Save</span>
+                </button>
+            </form>
+
+            <!-- <h5></h5> -->
+            <!-- <ul>
+                <li id="open__students_delete" onclick="openSection(3, 'students_delete');">Delete account</li>
+            </ul> -->
+        </section>
+
+        <!-- teachers -->
+        <!-- 1 -->
+        <section id="teachers_add">
+            <h3>Add new teacher</h3>
+            <p>
+                <span>Name</span>
+                <input id="teachers_add__name" type="text" placeholder="Enter here" onchange="teachers_add__updated();">
+            </p>
+            <p>
+                <span>Phone</span>
+                <input id="teachers_add__phone" type="tel" placeholder="Format: 01087654321" onchange="teachers_add__updated();">
+            </p>
+            <div id="teachers_add__save" class="button hidden" onclick="openSection(1, 'teachers_main', null, 'TA');">
+                <span class="material-icons-round">add</span>
+                <span>Submit</span>
+            </div>
+        </section>
+        <section id="teachers_main">
+            <h5>&nbsp;</h5>
+            <ul id="teachers_main__list"></ul>
+        </section>
+
+        <!-- words -->
+        <!-- 1 -->
+        <section id="words_uploadBook">
+            <h3>Upload book</h3>
+            <p>
+                <span>Title</span>
+                <input id="words_uploadBook__title" type="text" placeholder="Enter here">
+            </p>
+            <br>
+            <a href="/words/sample.xlsx" download>Download Form</a>
+            <input id="words_uploadBook__file" type="file" accept=".xlsx">
+            <div id="words_uploadBook__save" class="button hidden" onclick="openSection(1, 'words_manageBooks_A', null, 'WU');">
+                <span class="material-icons-round">done</span>
+                <span>Save</span>
+            </div>
+        </section>
+        <section id="words_manageBooks_A">
+            <h5>&nbsp;</h5>
+            <ul id="words_manageBooks_A__list"></ul>
+        </section>
+        <!-- 2 -->
+        <section id="words_manageBooks_B">
+            <h5>&nbsp;</h5>
+            <ul>
+                <li id="open__words_manageBooks_renameBook" onclick="openSection(3, 'words_manageBooks_renameBook');">Rename book</li>
+                <li id="open__words_manageBooks_deleteBook" onclick="openSection(3, 'words_manageBooks_deleteBook');">Delete book</li>
+            </ul>
+            <h5>Groups</h5>
+            <ul id="words_manageBooks_B__list"></ul>
+        </section>
+        <!-- 3 -->
+        <section id="words_manageBooks_renameBook">
+            <!-- <div style="height: 16px;"></div> -->
+            <h3>Rename book</h3>
+            <p>
+                <span>Title</span>
+                <input id="words_manageBooks_renameBook__title" type="text" placeholder="Enter here">
+            </p>
+            <div id="words_manageBooks_renameBook__save" class="button hidden" onclick="openSection(1, 'words_manageBooks_A', null, 'WR');">
+                <span class="material-icons-round">done</span>
+                <span>Save</span>
+            </div>
+        </section>
+        <section id="words_manageBooks_deleteBook">
+            <h3>Delete book</h3>
+            <div id="words_manageBooks_deleteBook__save" class="button" onclick="openSection(1, 'words_manageBooks_A', null, 'WD');">
+                <span class="material-icons-round">delete_forever</span>
+                <span>Delete</span>
+            </div>
+            <p class="alert">You cannot undo this action</p>
+        </section>
+        <section id="words_manageBooks_C">
+            <h5>&nbsp;</h5>
+            <ul id="words_manageBooks_C__list"></ul>
+        </section>
+        <!-- 4 -->
+        <section id="words_manageBooks_D">
+            <h3 id="words_manageBooks_D__word">&nbsp;</h3>
+            <p>
+                <span>Index</span>
+                <span id="words_manageBooks_D__index">&nbsp;</span>
+            </p>
+            <p>
+                <span>Pronunciations</span>
+                <input id="words_manageBooks_D__pronunciations" type="text" onchange="words_manageBooks_D__updated();">
+            </p>
+            <p><span>Meanings</span></p>
+            <textarea id="words_manageBooks_D__meanings" rows="5" onchange="words_manageBooks_D__updated();"></textarea>
+            <div id="words_manageBooks_D__save" class="button hidden" onclick="openSection(3, 'words_manageBooks_C', ref.words.groupId, 'WE');">
+                <span class="material-icons-round">done</span>
+                <span>Save</span>
+            </div>
+        </section>
+    </div>
+
+    <script src="/__/firebase/8.2.1/firebase-app.js"></script>
+    <script src="/__/firebase/8.2.1/firebase-auth.js"></script>
+    <script src="/__/firebase/8.2.1/firebase-firestore.js"></script>
+    <script src="/__/firebase/8.2.1/firebase-functions.js"></script>
+    <script src="/__/firebase/init.js?useEmulator=true"></script>
+    <script src="/src/js/xlsx.full.min.js"></script>
+    <script src="/admin/manage.js"></script>
+</body>
+<!-- Designed by daechiro@gmail.com -->
+</html>

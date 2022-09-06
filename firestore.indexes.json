@@ -1,0 +1,22 @@
+{
+  "indexes": [
+    { 
+      "collectionGroup": "members_inactive",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "type", "order": "ASCENDING" },
+        { "fieldPath": "phone", "order": "ASCENDING" },
+        { "fieldPath": "phone_parent", "order": "ASCENDING" }
+      ]
+    },
+    { 
+      "collectionGroup": "classes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "teachers", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "open", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

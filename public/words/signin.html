@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Words - Sign In</title>
+
+    <script src="/__/firebase/8.2.1/firebase-app.js"></script>
+    <script src="/__/firebase/8.2.1/firebase-auth.js"></script>
+    <script src="/__/firebase/8.2.1/firebase-firestore.js"></script>
+    <script src="/__/firebase/init.js?useEmulator=true"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/ui/4.6.1/firebase-ui-auth.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.6.1/firebase-ui-auth.css">
+
+    <!-- <link rel="stylesheet" type="text/css" href="/src/css/sk.css"> -->
+    <style>
+        body {
+            width: 100vw;
+            height: 100vh;
+            margin: 0px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="firebaseui-auth-container"></div>
+
+    <script>
+        const db = firebase.firestore();
+        const user = firebase.auth().currentUser;
+
+        firebase.auth().onAuthStateChanged(async (user) => {
+            if (user) {
+                const type = await Promise.all([
+                    db.collection('managers').doc(user.uid).get().then(doc => doc.exists).catch(() => false),
+                    db.collection('students').doc(user.uid).get().then(doc => doc.exists).catch(() => false),
+                    db.collection('teachers').doc(user.uid).get().then(doc => doc.exists).catch(() => false),
+                ]);
+                console.log(type)
+                if (type.includes(true)) {
+                    location.replace('/words');
+                } else {
+                    alert('이용할 수 없는 계정입니다')
+                    firebase.auth().signOut();
+                    location.reload();
+                }
+            }
+        });
+
+        var ui = new firebaseui.auth.AuthUI(firebase.auth());
+        firebase.auth().languageCode = 'ko';
+        ui.start('#firebaseui-auth-container', {
+            signInSuccessUrl: '/words',
+            signInOptions: [{
+                provider: firebase.auth.PhoneAuthProvider.PROVIDER_ID,
+                defaultCountry: 'KR',
+                recaptchaParameters: {
+                    type: 'image',
+                    size: 'invisible',
+                    badge: 'bottomleft',
+                },
+            }],
+        });
+    </script>
+</body>
+<!-- Designed by daechiro@gmail.com -->
+
+</html>
