@@ -171,7 +171,7 @@ var refresh = (option = {}) => {
                 <td>0${student.phone_parent.slice(3)}</td>
                 <td>${student.classNames.join(', ')}</td>
                 <td class="edit">
-                    <span class="material-icons-round" onclick="students.edit.open('${student.uid}');">create</span>
+                    <!-- <span class="material-icons-round" onclick="students.edit.open('${student.uid}');">create</span> -->
                     <span class="material-icons-round" onclick="students.del.open('${student.uid}', '${student.name}');">delete</span>
                 </td>`;
             document.getElementById('students').appendChild(tr);

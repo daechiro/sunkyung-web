@@ -12,7 +12,7 @@ firebase.auth().onAuthStateChanged(async (user) => {
             } else if (await db.collection('teachers').doc(user.uid).get().then(doc => doc.exists).catch(() => false)) {
                 location.replace('/class');
             } else if (await firebase.firestore().collection('managers').doc(user.uid).get().then(doc => doc.exists).catch(() => false)) {
-                location.replace('/management');
+                location.replace('/admin');
             } else {
                 alert('이용할 수 없는 계정입니다');
                 firebase.auth().signOut();
@@ -29,7 +29,7 @@ firebase.auth().onAuthStateChanged(async (user) => {
                 if (await db.collection('teachers').doc(user.uid).get().then(doc => doc.exists).catch(() => false)) {
                     location.replace('/class');
                 } else if (await firebase.firestore().collection('managers').doc(user.uid).get().then(doc => doc.exists).catch(() => false)) {
-                    location.replace('/management');
+                    location.replace('/admin');
                 } else {
                     alert('이용할 수 없는 계정입니다');
                     // firebase.auth().signOut();

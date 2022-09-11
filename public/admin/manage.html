@@ -23,22 +23,23 @@
             <h5>Direct Links</h5>
             <ul>
                 <li class="link" onclick="window.open('/class', '_blank').focus();">수업 관리</li>
-                <li class="link" onclick="window.open('/management/student', '_blank').focus();">학생 관리</li>
+                <li class="link" onclick="window.open('/management/student', '_blank').focus();">학생 관리 (old)</li>
             </ul>
             <h5>Students</h5>
             <ul>
-                <li id="open__students_add" onclick="openSection(1, 'students_add');">Add new student</li>
                 <li id="open__students_main" onclick="openSection(1, 'students_main');">Manage students</li>
+                <li id="open__students_add" onclick="openSection(1, 'students_add');">Add new student</li>
+                <li id="open__students_upload" onclick="openSection(1, 'students_upload');">Upload new students</li>
             </ul>
             <h5>Teachers</h5>
             <ul>
-                <li id="open__teachers_add" onclick="openSection(1, 'teachers_add');">Add new teacher</li>
                 <li id="open__teachers_main" onclick="openSection(1, 'teachers_main');">Manage teachers</li>
+                <li id="open__teachers_add" onclick="openSection(1, 'teachers_add');">Add new teacher</li>
             </ul>
             <h5>Words</h5>
             <ul>
-                <li id="open__words_uploadBook" onclick="openSection(1, 'words_uploadBook');">Upload new book</li>
                 <li id="open__words_manageBooks_A" onclick="openSection(1, 'words_manageBooks_A');">Manage books</li>
+                <li id="open__words_uploadBook" onclick="openSection(1, 'words_uploadBook');">Upload new book</li>
             </ul>
         </section>
 
@@ -54,11 +55,11 @@
                 </p>
                 <p>
                     <span>학생 연락처</span>
-                    <input type="text" required pattern="010[0-9]{8}" title="010XXXXXXXX" placeholder="Format: 01087654321" name="phone">
+                    <input type="text" required pattern="010[0-9]{8}" placeholder="Format: 01087654321" name="phone">
                 </p>
                 <p>
                     <span>학부모 연락처</span>
-                    <input type="text" pattern="010[0-9]{8}" title="010XXXXXXXX" placeholder="Format: 01087654321" name="phone_parent">
+                    <input type="text" pattern="010[0-9]{8}" placeholder="Format: 01087654321" name="phone_parent">
                 </p>
                 <br>
                 <p>학교 정보</p>
@@ -86,6 +87,16 @@
                 </button>
             </form>
         </section>
+        <section id="students_upload">
+            <h3>Upload file</h3>
+            <br>
+            <a href="/admin/studentSample.xlsx" download>Download Form</a>
+            <input id="students_upload__file" type="file" accept=".xlsx">
+            <div id="students_upload__save" class="button hidden" onclick="openSection(1, 'students_main', null, 'SU');">
+                <span class="material-icons-round">done</span>
+                <span>Save</span>
+            </div>
+        </section>
         <section id="students_main">
             <h5>&nbsp;</h5>
             <ul id="students_main__list"></ul>
@@ -101,11 +112,11 @@
                 </p>
                 <p>
                     <span>학생 연락처</span>
-                    <input type="text" disabled required pattern="010[0-9]{8}" title="010XXXXXXXX" placeholder="Format: 01087654321" name="phone">
+                    <input type="text" required pattern="010[0-9]{8}" placeholder="Format: 01087654321" name="phone">
                 </p>
                 <p>
                     <span>학부모 연락처</span>
-                    <input type="text" disabled pattern="010[0-9]{8}" title="010XXXXXXXX" placeholder="Unknown" name="phone_parent">
+                    <input type="text" pattern="010[0-9]{8}" placeholder="Unknown" name="phone_parent">
                 </p>
                 <br>
                 <p>학교 정보</p>
@@ -138,14 +149,27 @@
                 </button>
             </form>
 
-            <!-- <h5></h5> -->
-            <!-- <ul>
+            <br><br><br>
+            <ul>
                 <li id="open__students_delete" onclick="openSection(3, 'students_delete');">Delete account</li>
-            </ul> -->
+            </ul>
+        </section>
+        <!-- 3 -->
+        <section id="students_delete">
+            <h3>Delete Account</h3>
+            <div id="students_delete__save" class="button" onclick="openSection(1, 'students_main', null, 'SD');">
+                <span class="material-icons-round">delete_forever</span>
+                <span>Delete</span>
+            </div>
+            <p class="alert">You cannot undo this action</p>
         </section>
 
         <!-- teachers -->
         <!-- 1 -->
+        <section id="teachers_main">
+            <h5>&nbsp;</h5>
+            <ul id="teachers_main__list"></ul>
+        </section>
         <section id="teachers_add">
             <h3>Add new teacher</h3>
             <p>
@@ -160,10 +184,6 @@
                 <span class="material-icons-round">add</span>
                 <span>Submit</span>
             </div>
-        </section>
-        <section id="teachers_main">
-            <h5>&nbsp;</h5>
-            <ul id="teachers_main__list"></ul>
         </section>
 
         <!-- words -->

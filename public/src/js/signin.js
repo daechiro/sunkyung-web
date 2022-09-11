@@ -7,6 +7,7 @@ firebase.auth().onAuthStateChanged(async (user) => {
             firebase.firestore().collection('parents').doc(user.uid).get().then(doc => doc.exists ? doc.data().children : false).catch(() => false),
             firebase.firestore().collection('students').doc(user.uid).get().then(doc => doc.exists).catch(() => false),
         ]);
+        alert(data)
         if (data[0] && data[0].length > 1) {
             location.replace('/app/students');
         } else if (data[0] && data[0].length) {

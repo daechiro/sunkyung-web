@@ -18,6 +18,7 @@ let ref = {
         ref: db.collection('students'),
         data: {},
         uid: '',
+        rawData: [],
     },
     parents: {
         ref: db.collection('parents'),
@@ -38,6 +39,7 @@ let ref = {
 let beforeOpen = {
     //students
     'students_main': () => {
+        ref.students.uid = '';
         return ref.students.ref.orderBy('name').get().then(snapshot => {
             students_main__list.innerHTML = snapshot.docs.map(doc => {
                 const Data = doc.data();
@@ -52,23 +54,27 @@ let beforeOpen = {
         let Data = ref.students.data[studentId];
         const values = await Promise.all([
             ref.parents.ref.doc(Data.parent || 'a').get().then(doc => doc.exists ? `0${doc.data().phone.slice(3)}` : '').catch(() => ''),
-            Promise.all(Data.classes.map(classId => ref.classes.ref.doc(classId).get().then(doc => {
+            Data.classes.length ? Promise.all(Data.classes.map(classId => ref.classes.ref.doc(classId).get().then(doc => {
                 if (doc.exists) {
                     return doc.data().name;
                 } else {
                     return '';
                 }
-            }))),
+            }))) : '정보 없음',
         ]);
+        // Data.phone_parent = values[0];
         
         students_edit__form.elements['name'].value = Data.name;
         students_edit__form.elements['phone'].value = `0${Data.phone.slice(3)}`;
-        students_edit__form.elements['phone_parent'].value = values[0];
+        students_edit__form.elements['phone_parent'].value = Data.phone_parent = values[0];
         students_edit__form.elements['schoolName'].value = Data.school.name;
         students_edit__form.elements['schoolYear'].value = Data.school.year;
         students_edit__form.elements['schoolStatus'].value = Data.school.status;
         students_edit__form_className.innerText = values[1];
         return;
+    },
+    'students_delete': () => {
+        students_delete__save.classList.remove('hidden');
     },
 
     //teachers
@@ -150,22 +156,63 @@ let beforeClose = {
             return false;
         });
     },
+    'students_upload': (_event) => {
+        if (!(_event === 'SU' && ref.students.rawData.length)) return;
+        
+        students_upload__save.classList.add('hidden');
+        return Promise.all(ref.students.rawData.map(studentData => firebase.functions().httpsCallable('addStudent')(studentData).catch(e => alert(studentData.name + ': ' + e)))).then(() => {
+            students_upload__file.value = null;
+            ref.students.rawData = [];
+            return;
+        });
+    },
     'students_edit': (_event) => {
         students_edit__save.classList.add('hidden');
         if (_event !== 'SE') return;
         
+        const original = ref.students.data[ref.students.uid];
         const data = new FormData(students_edit__form);
-        const studentData = {
-            name: data.get('name'),
-            school: {
-                name: data.get('schoolName'),
-                year: Number(data.get('schoolYear')),
-                status: data.get('schoolStatus'),
-            },
-        };
+        let queue = [];
 
-        return ref.students.ref.doc(ref.students.uid).update(studentData).catch(alert).then(() => {
+        if (data.get('phone') != `0${original.phone.slice(3)}`) {
+            queue.push(firebase.functions().httpsCallable('updateStudentPhone')({
+                uid: ref.students.uid,
+                phone: `+82${data.get('phone').slice(1)}`,
+            }).catch(alert));
+        }
+        if (data.get('phone_parent') != original.phone_parent) {
+            queue.push(firebase.functions().httpsCallable('updateParentPhone')({
+                uid: ref.students.uid,
+                parent: original.parent,
+                phone: `+82${data.get('phone_parent').slice(1)}`,
+            }).catch(alert));
+        }
+        if (data.get('name') != original.name || data.get('schoolName') != original.school.name || Number(data.get('schoolYear')) != Number(original.school.year) || data.get('schoolStatus') != original.school.status) {
+            const studentData = {
+                name: data.get('name'),
+                school: {
+                    name: data.get('schoolName'),
+                    year: Number(data.get('schoolYear')),
+                    status: data.get('schoolStatus'),
+                },
+            };
+            queue.push(ref.students.ref.doc(ref.students.uid).update(studentData).catch(alert));
+        }
+
+        return Promise.all(queue).then(() => {
             students_edit__form.reset();
+            return false;
+        });
+    },
+    'students_delete': (_event) => {
+        if (_event !== 'SD') return;
+
+        students_delete__save.classList.add('hidden');
+
+        return firebase.functions().httpsCallable('deleteStudent')({
+            uid: ref.students.uid,
+        }).catch(alert).then(() => {
+            students_delete__save.classList.remove('hidden');
             return false;
         });
     },
@@ -270,11 +317,50 @@ var openSection = async (depth, sectionId, openingOption, closingOption) => {
 };
 
 
+students_upload__file.addEventListener('change', event => {
+    students_upload__save.classList.add('hidden');
+    let reader = new FileReader();
+    reader.onload = () => {
+        let data = reader.result;
+        let workbook = XLSX.read(data, {type: 'binary'});
+        const raw = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+        for (const e of raw) {
+            if ('name' in e && 'phone' in e && 'schoolName' in e && 'schoolYear' in e) {
+                const x = {
+                    name: e.name,
+                    phone: '+82' + e.phone.replaceAll('-', '').slice(1),
+                    phone_parent: 'phone_parent' in e ? '+82' + e.phone_parent.replaceAll('-', '').slice(1) : false,
+                    school: {
+                        name: e.schoolName,
+                        year: e.schoolYear,
+                        status: 'IN',
+                    },
+                };
+                ref.students.rawData.push(x);
+            } else {
+                alert('비정상적인 데이터가 포함되어있습니다: ' + e);
+                ref.students.rawData = [];
+                break;
+            }
+        };
+        if (Object.keys(ref.students.rawData).length) {
+            students_upload__save.classList.remove('hidden');
+        }
+    };
+    reader.readAsBinaryString(event.target.files[0]);
+}, false);
 var students_edit__updated = () => {
     const original = ref.students.data[ref.students.uid];
     const data = new FormData(students_edit__form);
+    const p = /^010[0-9]{8}$/;
     
-    if (data.get('name') != original.name || data.get('schoolName') != original.school.name || Number(data.get('schoolYear')) != Number(original.school.year) || data.get('schoolStatus') != original.school.status) {
+    if (
+        p.test(data.get('phone')) && (
+            (!data.get('phone_parent') && !original.phone_parent) || p.test(data.get('phone_parent'))
+        ) && (
+            data.get('name') != original.name || data.get('schoolName') != original.school.name || Number(data.get('schoolYear')) != Number(original.school.year) || data.get('schoolStatus') != original.school.status || data.get('phone') != `0${original.phone.slice(3)}` || data.get('phone_parent') != original.phone_parent
+        )
+    ) {
         students_edit__save.classList.remove('hidden');
     } else {
         students_edit__save.classList.add('hidden');
@@ -282,7 +368,7 @@ var students_edit__updated = () => {
 };
 
 var teachers_add__updated = () => {
-    const p = /^010[0-9]{8}$/g;
+    const p = /^010[0-9]{8}$/;
     if (teachers_add__name.value && p.test(teachers_add__phone.value)) {
         teachers_add__save.classList.remove('hidden');
     } else {

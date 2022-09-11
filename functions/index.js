@@ -61,56 +61,152 @@ exports.addStudent = functions.https.onCall(async (data, context) => {
     }
 });
 
-exports.editStudent = functions.https.onCall(async (data, context) => {
+exports.updateStudentPhone = functions.https.onCall(async (data, context) => {
     if (!(await ref.manager(context.auth.uid).get().then(doc => doc.exists))) throw new functions.https.HttpsError('unauthorized', 'Unauthorized user access.');
-    if (!(data.name && data.phone && data.school)) throw new functions.https.HttpsError('invalid-argument', 'Invalid or insufficient arguments.');
+    if (!(data.uid && data.phone)) throw new functions.https.HttpsError('invalid-argument', 'Invalid or insufficient arguments.');
     
     const currentUser = await admin.auth().getUserByPhoneNumber(data.phone).then(userRecord => userRecord.uid).catch(() => null);
-    if (currentUser !== data.uid) {
-        if (await ref.student(currentUser).get().then(doc => !doc.exists) && await ref.parent(currentUser).get().then(doc => !doc.exists)) {
-            admin.auth().deleteUser(currentUser).then(() => {
-                return admin.auth().updateUser(data.uid, {
-                    phoneNumber: data.phone,
-                }).catch(console.error);
-            }).catch(console.error);
-        } else throw new functions.https.HttpsError('invalid-argument', 'Existing user data.');
-    } else {
-        admin.auth().updateUser(data.uid, {
-            phoneNumber: data.phone,
-        }).catch(console.error);
+    if (currentUser) {
+        if (currentUser == data.uid) throw new functions.https.HttpsError('invalid-argument', 'Existing user data.');
+
+        const existence = await Promise.all([
+            ref.student(currentUser).get().then(doc => doc.exists),
+            ref.parent(currentUser).get().then(doc => {
+                if (doc.exists) {
+                    if (doc.data().children.length) return true;
+                    else return ref.parent(currentUser).delete().then(() => false);
+                } else return false;
+            }),
+            ref.teacher(currentUser).get().then(doc => doc.exists),
+            ref.manager(currentUser).get().then(doc => doc.exists),
+        ]);
+        if (existence.includes(true)) throw new functions.https.HttpsError('invalid-argument', 'Existing user data.');
+
+        await admin.auth().deleteUser(currentUser);
     }
 
-    if (data.phone_parent) {
-        data.parent = await ref.student(data.uid).get().then(doc => doc.data().parent).catch(() => '');
-        if (data.parent) {
-            admin.auth().updateUser(data.parent, {
-                phoneNumber: data.phone_parent,
-            }).then(() => {
-                return ref.parent(data.parent).update({
-                    phone: data.phone_parent,
-                });
-            }).catch(console.error);
-        } else {
-            data.parent = (await admin.auth().getUserByPhoneNumber(data.phone_parent).then(userRecord => userRecord.uid).catch(() => null)) || (await admin.auth().createUser({ phoneNumber: data.phone_parent, }).then(userRecord => userRecord.uid).catch(() => null));
-            ref.parent(data.parent).set({
-                children: admin.firestore.FieldValue.arrayUnion(data.uid),
-                phone: data.phone_parent,
-            }, { merge: true });
-        }
-    } else {
-        data.parent = '';
-    }
-
-    ref.student(data.uid).update({
-        name: data.name,
-        phone: data.phone,
-        school: {
-            name: data.school.name,
-            year: data.school.year,
-            status: data.school.status,
-        },
+    return admin.auth().updateUser(data.uid, {
+        phoneNumber: data.phone,
+    }).catch(console.error).then(() => {
+        return ref.student(data.uid).update({
+            phone: data.phone,
+        });
     });
 });
+
+exports.updateParentPhone = functions.https.onCall(async (data, context) => {
+    if (!(await ref.manager(context.auth.uid).get().then(doc => doc.exists))) throw new functions.https.HttpsError('unauthorized', 'Unauthorized user access.');
+    if (!(data.uid && data.phone)) throw new functions.https.HttpsError('invalid-argument', 'Invalid or insufficient arguments.');
+    
+    const currentUser = await admin.auth().getUserByPhoneNumber(data.phone).then(userRecord => userRecord.uid).catch(() => null);
+    if (currentUser) {
+        if (currentUser == data.uid) throw new functions.https.HttpsError('invalid-argument', 'Existing user data.');
+        const existence = await Promise.all([
+            ref.student(currentUser).get().then(doc => doc.exists),
+            ref.teacher(currentUser).get().then(doc => doc.exists),
+            ref.manager(currentUser).get().then(doc => doc.exists),
+        ]);
+        if (existence.includes(true)) throw new functions.https.HttpsError('invalid-argument', 'Existing user data.');
+
+        const isParent = await ref.parent(currentUser).get().then(doc => {
+            if (doc.exists) {
+                if (doc.data().children.length) return true;
+                else return ref.parent(currentUser).delete().then(() => false);
+            } else return false;
+        });
+        if (isParent) {
+            return Promise.all([
+                ref.parent(currentUser).set({
+                    children: admin.firestore.FieldValue.arrayUnion(data.uid),
+                    phone: data.phone,
+                }, { merge: true }),
+                data.parent ? ref.parent(data.parent).get().then(doc => {
+                    if (doc.data().children.length > 1) {
+                        return ref.parent(data.parent).update({
+                            children: admin.firestore.FieldValue.arrayRemove(data.uid),
+                        });
+                    } else {
+                        return ref.parent(data.parent).delete();
+                    }
+                }) : true,
+                ref.student(data.uid).update({
+                    parent: currentUser,
+                }),
+            ]);
+        } else {
+            await admin.auth().deleteUser(currentUser);
+        }
+    }
+    return admin.auth().createUser({ phoneNumber: data.phone, }).then(userRecord => Promise.all([
+        ref.parent(userRecord.uid).set({
+            children: admin.firestore.FieldValue.arrayUnion(data.uid),
+            phone: data.phone,
+        }, { merge: true }),
+        data.parent ? ref.parent(data.parent).get().then(doc => {
+            if (doc.data().children.length > 1) {
+                return ref.parent(data.parent).update({
+                    children: admin.firestore.FieldValue.arrayRemove(data.uid),
+                });
+            } else {
+                return ref.parent(data.parent).delete();
+            }
+        }) : true,
+        ref.student(data.uid).update({
+            parent: userRecord.uid,
+        }),
+    ]));
+});
+
+// exports.editStudent = functions.https.onCall(async (data, context) => {
+//     if (!(await ref.manager(context.auth.uid).get().then(doc => doc.exists))) throw new functions.https.HttpsError('unauthorized', 'Unauthorized user access.');
+//     if (!(data.name && data.phone && data.school)) throw new functions.https.HttpsError('invalid-argument', 'Invalid or insufficient arguments.');
+    
+//     const currentUser = await admin.auth().getUserByPhoneNumber(data.phone).then(userRecord => userRecord.uid).catch(() => null);
+//     if (currentUser !== data.uid) {
+//         if (await ref.student(currentUser).get().then(doc => !doc.exists) && await ref.parent(currentUser).get().then(doc => !doc.exists)) {
+//             admin.auth().deleteUser(currentUser).then(() => {
+//                 return admin.auth().updateUser(data.uid, {
+//                     phoneNumber: data.phone,
+//                 }).catch(console.error);
+//             }).catch(console.error);
+//         } else throw new functions.https.HttpsError('invalid-argument', 'Existing user data.');
+//     } else {
+//         admin.auth().updateUser(data.uid, {
+//             phoneNumber: data.phone,
+//         }).catch(console.error);
+//     }
+
+//     if (data.phone_parent) {
+//         data.parent = await ref.student(data.uid).get().then(doc => doc.data().parent).catch(() => '');
+//         if (data.parent) {
+//             admin.auth().updateUser(data.parent, {
+//                 phoneNumber: data.phone_parent,
+//             }).then(() => {
+//                 return ref.parent(data.parent).update({
+//                     phone: data.phone_parent,
+//                 });
+//             }).catch(console.error);
+//         } else {
+//             data.parent = (await admin.auth().getUserByPhoneNumber(data.phone_parent).then(userRecord => userRecord.uid).catch(() => null)) || (await admin.auth().createUser({ phoneNumber: data.phone_parent, }).then(userRecord => userRecord.uid).catch(() => null));
+//             ref.parent(data.parent).set({
+//                 children: admin.firestore.FieldValue.arrayUnion(data.uid),
+//                 phone: data.phone_parent,
+//             }, { merge: true });
+//         }
+//     } else {
+//         data.parent = '';
+//     }
+
+//     ref.student(data.uid).update({
+//         name: data.name,
+//         phone: data.phone,
+//         school: {
+//             name: data.school.name,
+//             year: data.school.year,
+//             status: data.school.status,
+//         },
+//     });
+// });
 
 exports.deleteStudent = functions.https.onCall(async (data, context) => {
     if (!(await ref.manager(context.auth.uid).get().then(doc => doc.exists))) throw new functions.https.HttpsError('unauthorized', 'Unauthorized user access.');
