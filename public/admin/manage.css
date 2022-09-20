@@ -274,6 +274,11 @@ body.active {
     border-bottom-left-radius: 10px;
     border-bottom-right-radius: 10px;
 }
+.container section li.hidden {
+    display: none;
+    border: none;
+    /* border-image: linear-gradient(90deg, #4DA2FF, #4DA2FF) 1 / 1px 0px 0px 0px; */
+}
 /* .container section li::after {
     font-family: 'Material Icons Round';
     content: 'arrow_forward_ios';

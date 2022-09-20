@@ -19,7 +19,9 @@ firebase.auth().onAuthStateChanged(async (user) => {
                 location.replace('/signin');
             }
             return 0;
-        } else {
+        } else if (children.length == 1) {
+            location.replace(`/app/${children[0]}`);
+        } {
             Promise.all(children.map(student => {
                 return db.collection('students').doc(student).get().then(doc => `<li onclick="location.href = '/app/${student}'">${doc.data().name}</li>`).catch(console.error);
             })).then(values => {

@@ -172,6 +172,7 @@
         <div class="sk-modal-body" style="width: 655px;">
             <p class="title">성적 입력 - <span id="studentName_students_grade"></span>, <span id="testName_students_grade"></span></p>
             <p>총점: <span id="testPoints_students_grade"></span></p>
+            <input class="sk-input" id="easy_students_grade" type="text" placeholder="성적 간편 입력 (답안이 없는 경우 0)" name="easy" oninput="students.grade.easyInput();" style="display: none;">
             <form id="form_students_grade" method="POST" onsubmit="return students.grade.save();">
                 <div id="obj_students_grade">
                     <p>객관식 문항 답안 입력 (답안이 없는 경우 비워둠)</p>

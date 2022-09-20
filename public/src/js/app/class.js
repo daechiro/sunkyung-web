@@ -6,6 +6,7 @@ const studentRef = db.collection('students').doc(studentId);
 const classRef = db.collection('classes').doc(classId);
 
 let list0 = [], list1 = [], list2 = [];
+let backlink = `/app/${studentId}`;
 
 if (localStorage.getItem('back') === 'true') {
     localStorage.setItem('back', 'false');
@@ -14,7 +15,23 @@ if (localStorage.getItem('back') === 'true') {
 
 Promise.all([
     studentRef.get().then(doc => {
-        document.getElementById('student').innerHTML = doc.data().name;
+        const Data = doc.data();
+        if (Data.classes.length == 1) {
+            document.getElementById('header').style.display = 'none';
+            document.getElementsByTagName('body')[0].classList.add('fixed');
+            
+            return db.collection('parents').doc(Data.parent).get().then(doc => {
+                if (doc.exists && doc.data().children.length > 1) {
+                    backlink = '/app';
+                    document.getElementById('student').innerHTML = '학생';
+                    document.getElementById('header').style.display = 'flex';
+                    document.getElementsByTagName('body')[0].classList.remove('fixed');
+                }
+                return true;
+            }).catch(() => false);
+        } else {
+            document.getElementById('student').innerHTML = Data.name;
+        }
     }).catch(() => location.replace('/signin')),
 
     classRef.get().then(async doc => {
@@ -51,7 +68,7 @@ Promise.all([
             }
         });
         refreshList();
-        document.getElementById('banner').innerHTML = `<li onclick="location.href = '/app/${studentId}/${classId}/report'">성적 분석</li>`
+        document.getElementById('banner').innerHTML = `<li onclick="location.href = '/app/${studentId}/${classId}/report'">누적 성적표</li>`
     }).catch(() => location.replace('/signin')),
 ]).then(() => {
     setTimeout(() => {
@@ -87,6 +104,6 @@ var refreshList = () => {
 
 var back = () => {
     localStorage.setItem('back', 'true');
-    history.back();
-    location.replace(`/app/${studentId}`);
+    // history.back();
+    location.replace(backlink);
 };

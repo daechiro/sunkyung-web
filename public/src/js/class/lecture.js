@@ -331,6 +331,7 @@ const students = {
         answersContainer: document.getElementById('answersContainer'),
         pointsContainer: document.getElementById('pointsContainer'),
         comment: document.getElementById('comment_students_grade'),
+        easy: document.getElementById('easy_students_grade'),
         uid: '',
         testId: '',
         questions: [],
@@ -346,6 +347,7 @@ const students = {
                 const student = data[0];
                 const test = data[1];
                 const gradeData = data[2];
+                const isEasyInputActive = test.questions.findIndex(x => !x.multipleChoice) == -1;
                 students.grade.questions = test.questions;
                 students.grade.studentName.innerHTML = student.name;
                 students.grade.testName.innerHTML = test.name;
@@ -360,23 +362,29 @@ const students = {
                     input.classList.add('sk-input');
                     input.type = 'text';
                     input.name = `Q${i + 1}`;
+                    input.id = `Q${i + 1}`;
                     if ('answers' in gradeData) input.value = gradeData.answers[i];
                     input.autocomplete = 'off';
                     if (question.multipleChoice) {
                         input.pattern = '[1-5]';
                         input.placeholder = i + 1;
-                        input.onchange = e => {
+                        input.onchange = (e, option = true) => {
                             if (e.target.value === `${question.answer}`) {
                                 e.target.style.borderColor = 'var(--sk-color-blue)';
+                                e.target.style.color = 'var(--sk-color-blue)';
                             } else {
                                 e.target.style.borderColor = 'var(--sk-color-red)';
+                                e.target.style.color = 'var(--sk-color-red)';
                             }
+                            if (isEasyInputActive && option) students.grade.setEasyInput();
                         }
                         if ('answers' in gradeData) {
                             if (Number(gradeData.answers[i]) === Number(question.answer)) {
                                 input.style.borderColor = 'var(--sk-color-blue)';
+                                input.style.color = 'var(--sk-color-blue)';
                             } else {
                                 input.style.borderColor = 'var(--sk-color-red)';
+                                input.style.color = 'var(--sk-color-red)';
                             }
                         }
                         students.grade.answersContainer.appendChild(input);
@@ -394,8 +402,35 @@ const students = {
                     }
                     
                 }
+                if (isEasyInputActive) {
+                    students.grade.easy.style.display = 'inline-block';
+                    students.grade.setEasyInput();
+                }
                 students.grade.modal.classList.remove('inactive');
             });
+        },
+        setEasyInput: () => {
+            const data = new FormData(students.grade.form);
+            let answers = students.grade.questions.map((Q, i) => Number(data.get(`Q${i + 1}`)));
+            while (answers.at(-1) == 0) {
+                answers.pop();
+            }
+            students.grade.easy.value = answers.join('').match(/.{1,5}/g)?.join(' ') ?? '';
+            return;
+        },
+        easyInput: () => {
+            const raw = students.grade.easy.value.replaceAll(' ', '').slice(0, students.grade.questions.length).split('');
+            students.grade.easy.value = raw.join('').match(/.{1,5}/g)?.join(' ') ?? '';
+            
+            for (i = 0; i < students.grade.questions.length; i++) {
+                const e = document.getElementById(`Q${i + 1}`);
+                const x = raw?.[i] ?? '';
+                if (e.value != x) {
+                    e.value = x;
+                    e.onchange({ target: e, }, false);
+                }
+            }
+            
         },
         close: () => {
             students.grade.modal.classList.add('inactive');
@@ -486,7 +521,7 @@ var refreshStudents = async (auth, option) => {
                 <th class="small">학교</th>
                 <th class="large">학생 연락처</th>
                 <th class="large">학부모 연락처</th>
-                <th class="xs center" style="cursor: pointer;" onclick="refreshStudents('${auth}', { orderBy: 'attendance', });">출결</th>
+                <th class="small center" style="cursor: pointer;" onclick="refreshStudents('${auth}', { orderBy: 'attendance', });">출결</th>
                 <th class="xs center" style="cursor: pointer;" onclick="refreshStudents('${auth}', { orderBy: 'assignment', type:'reading',   });">독해</th>
                 <th class="xs center" style="cursor: pointer;" onclick="refreshStudents('${auth}', { orderBy: 'assignment', type:'syntax',    });">구문</th>
                 <th class="xs center" style="cursor: pointer;" onclick="refreshStudents('${auth}', { orderBy: 'assignment', type:'listening', });">듣기</th>
@@ -557,7 +592,7 @@ var refreshStudents = async (auth, option) => {
                 return 'comment' in attendance[student.uid].assignment && type in attendance[student.uid].assignment.comment && attendance[student.uid].assignment.comment[type];
             }
 
-            tr.innerHTML += `<td class="center"><span class="clickable ${(student.uid in attendance && attendance[student.uid].attendance) ? 'blue' : 'red'}" onclick="students.attend.open('${student.uid}', '${student.name}');" id="${student.uid}_attendance">${(student.uid in attendance && 'attendance' in attendance[student.uid]) ? attendance[student.uid].attendance ? '출석' : '결석' : '-'}</span></td>`;
+            tr.innerHTML += `<td class="center"><span class="clickable ${(student.uid in attendance && attendance[student.uid].attendance) ? 'blue' : 'red'}" onclick="students.attend.open('${student.uid}', '${student.name}');" id="${student.uid}_attendance">${(student.uid in attendance && 'attendance' in attendance[student.uid]) ? attendance[student.uid].attendance ? `출석(${new Date(attendance[student.uid].time.seconds * 1000).toLocaleDateString('ko-kr', { weekday: 'short', })})` : '결석' : '-'}</span></td>`;
             tr.innerHTML += `<td class="center"><span class="clickable ${assignmentStatus('reading'  ) ? 'blue' : 'red'}" onclick="students.assignment.open('${student.uid}', '${student.name}', 'reading'  );" id="${student.uid}_assignment_reading"  ><b>${hasAssignmentData('reading'  ) ? attendance[student.uid].assignment.reading   ? `&nbsp;&nbsp;○${hasComment('reading'  ) ? '*' : ''}&nbsp;&nbsp;` : `&nbsp;&nbsp;⨉${hasComment('reading'  ) ? '*' : ''}&nbsp;&nbsp;` : '&nbsp;&nbsp;-&nbsp;&nbsp;'}</b></span></td>`;
             tr.innerHTML += `<td class="center"><span class="clickable ${assignmentStatus('syntax'   ) ? 'blue' : 'red'}" onclick="students.assignment.open('${student.uid}', '${student.name}', 'syntax'   );" id="${student.uid}_assignment_syntax"   ><b>${hasAssignmentData('syntax'   ) ? attendance[student.uid].assignment.syntax    ? `&nbsp;&nbsp;○${hasComment('syntax'   ) ? '*' : ''}&nbsp;&nbsp;` : `&nbsp;&nbsp;⨉${hasComment('syntax'   ) ? '*' : ''}&nbsp;&nbsp;` : '&nbsp;&nbsp;-&nbsp;&nbsp;'}</b></span></td>`;
             tr.innerHTML += `<td class="center"><span class="clickable ${assignmentStatus('listening') ? 'blue' : 'red'}" onclick="students.assignment.open('${student.uid}', '${student.name}', 'listening');" id="${student.uid}_assignment_listening"><b>${hasAssignmentData('listening') ? attendance[student.uid].assignment.listening ? `&nbsp;&nbsp;○${hasComment('listening') ? '*' : ''}&nbsp;&nbsp;` : `&nbsp;&nbsp;⨉${hasComment('listening') ? '*' : ''}&nbsp;&nbsp;` : '&nbsp;&nbsp;-&nbsp;&nbsp;'}</b></span></td>`;

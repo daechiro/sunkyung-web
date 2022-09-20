@@ -40,12 +40,26 @@ Promise.all([
         } else {
             document.getElementById('lecture-video').remove();
         }
+        if ('note' in lectureData) {
+            document.getElementById('lecture-note').innerText = lectureData.note;
+        } else {
+            document.getElementById('lecture-note-title').style.display = 'none';
+            document.getElementById('lecture-note').style.display = 'none';
+            document.getElementById('lecture-note-padding').style.display = 'none';
+        }
     }).catch(() => location.replace('/signin')),
     
     lectureRef.collection('attendance').doc(studentId).get().then(doc => {
         if (doc.exists) {
             const Data = doc.data();
-            document.getElementById('attendance').classList.add(`${Data.attendance}`);
+            attendance_status.classList.add(`${Data.attendance}`);
+            if (Data.attendance) {
+                attendance_status.innerText = `출석 (${new Date(Data.time.seconds * 1000).toLocaleDateString('ko-kr', {
+                    weekday: 'long',
+                })})`;
+            } else if (Data.attendance === false) {
+                attendance_status.innerText = '결석';
+            }
             if ('assignment' in Data) {
                 let list = '';
                 if ('reading' in Data.assignment) {
@@ -74,26 +88,37 @@ Promise.all([
         }
     }).catch(() => location.replace('/signin')),
 
-    firebase.functions().httpsCallable('getTests')({ classId: classId, lectureId: lectureId, }).then(async data => {
-        let tests = data.data;
-        if (!tests.length) return 0;
-        await Promise.all(tests.map((testData, i) => {
-            return lectureRef.collection('tests').doc(testData.id).collection('grade').doc(studentId).get().then(gradeDoc => {
-                const gradeData = gradeDoc.data();
-                if (gradeDoc.exists) {
-                    tests[i].myGrade = gradeData.grade;
-                    tests[i].comment = 'comment' in gradeData ? gradeData.comment : '';
-                } else {
-                    tests[i].myGrade = null;
-                    tests[i].comment = '';
-                }
+    lectureRef.collection('tests').get().then(async snapshot => {
+        let tests = await Promise.all(snapshot.docs.map((doc => {
+            let Data = doc.data();
+            Data.id = doc.id;
+
+            return lectureRef.collection('tests').doc(doc.id).collection('grade').get().then(snapshot => {
+                Data.grades = snapshot.docs.map(gradeDoc => {
+                    const gradeData = gradeDoc.data();
+                    if (gradeDoc.id == studentId) {
+                        if (gradeDoc.exists) {
+                            Data.myGrade = gradeData.grade;
+                            Data.comment = 'comment' in gradeData ? gradeData.comment : '';
+                        } else {
+                            Data.myGrade = null;
+                            Data.comment = '';
+                        }
+                    }
+
+                    return gradeData.grade
+                }).sort((a, b) => b - a);
+
+                return Data;
             });
-        }));
+        })));
+
         document.getElementById('list-1').innerHTML = tests.map(test => {
             if (test.myGrade != null) {
                 let graph = '';
                 let testOnClick = '';
                 const average = Math.round(test.grades.reduce((a, b) => a + b) / test.grades.length * 10) / 10;
+                const top30percent = Math.floor(test.grades[Math.floor(test.grades.length * 0.3)]);
                 if (test.points > 19) {
                     let gradeDistribution = new Array(20).fill(0);
                     const range = test.points / 20;
@@ -102,7 +127,7 @@ Promise.all([
                         gradeDistribution[Math.floor(grade / range)]++;
                     }
                     const maxDistribution = Math.max(...gradeDistribution);
-                    let indexes = [0, 0];
+                    let indexes = [0, 0, 0];
                     if (test.myGrade == test.points) {
                         indexes[0] = 19;
                     } else {
@@ -113,48 +138,59 @@ Promise.all([
                     } else {
                         indexes[1] = Math.floor(average / range)
                     }
+                    if (top30percent == test.points) {
+                        indexes[2] = 19;
+                    } else {
+                        indexes[2] = Math.floor(top30percent / range)
+                    }
                     graph = `<div class="graph-histogram">
                         <div class="graph--container">
                             ${gradeDistribution.map((x, i) => {
                                 x = 6 + 34 * x / maxDistribution;
                                 if (i == indexes[0]) {
-                                    return `<div style="height: ${x}px;" class="colored"></div>`
+                                    return `<div style="height: ${x}px;" class="highlighted"></div>`
                                 } else if (i == indexes[1]) {
                                     return `<div style="height: ${x}px;" class="dark"></div>`
+                                } else if (i == indexes[2]) {
+                                    return `<div style="height: ${x}px;" class="colored"></div>`
                                 } else {
                                     return `<div style="height: ${x}px;"></div>`
                                 }
                             }).join('')}
                         </div>
                         <div class="graph--index">
-                            <p><span class="colored"></span>내 점수</p>
+                            <p><span class="highlighted"></span>내 점수</p>
                             <p><span class="dark"></span>평균 (${average}점)</p>
+                            <p><span class="colored"></span>상위 30% (${top30percent}점)</p>
                         </div>
                     </div>`;
                 } else {
-                    const size = Math.floor(test.points);
+                    const size = Math.floor(test.points) + 1;
                     let gradeDistribution = new Array(size).fill(0);
                     for (grade of test.grades) {
                         gradeDistribution[Math.floor(grade)]++;
                     }
                     const maxDistribution = Math.max(...gradeDistribution);
-                    let indexes = [Math.floor(test.myGrade), Math.floor(average)];
+                    let indexes = [Math.floor(test.myGrade), Math.floor(average), top30percent];
                     graph = `<div class="graph-histogram">
                         <div class="graph--container">
                             ${gradeDistribution.map((x, i) => {
                                 x = 6 + 34 * x / maxDistribution;
                                 if (i == indexes[0]) {
-                                    return `<div style="height: ${x}px;" class="colored"></div>`
+                                    return `<div style="height: ${x}px;" class="highlighted"></div>`
                                 } else if (i == indexes[1]) {
                                     return `<div style="height: ${x}px;" class="dark"></div>`
+                                } else if (i == indexes[2]) {
+                                    return `<div style="height: ${x}px;" class="colored"></div>`
                                 } else {
                                     return `<div style="height: ${x}px;"></div>`
                                 }
                             }).join('')}
                         </div>
                         <div class="graph--index">
-                            <p><span class="colored"></span>내 점수</p>
+                            <p><span class="highlighted"></span>내 점수</p>
                             <p><span class="dark"></span>평균 (${average}점)</p>
+                            <p><span class="colored"></span>상위 30% (${top30percent}점)</p>
                         </div>
                     </div>`;
                 }
@@ -174,27 +210,105 @@ Promise.all([
         document.getElementById('list-1').innerHTML = '<li class="disabled">일시적인 오류가 발생했습니다</li>';
     }),
 
-    // lectureRef.collection('tests').orderBy('name').get().then(async snapshot => {
-    //     if (!snapshot.empty) {
-    //         const tests = await Promise.all(snapshot.docs.map(doc => {
-    //             const testData = Object.assign(doc.data(), {
-    //                 id: doc.id,
-    //             });
-    //             return lectureRef.collection('tests').doc(doc.id).collection('grade').doc(studentId).get().then(gradeDoc => {
-    //                 if (gradeDoc.exists) {
-    //                     return Object.assign(testData, { grade: gradeDoc.data().grade, });
-    //                 } else {
-    //                     return Object.assign(testData, { grade: null, });
+    // firebase.functions().httpsCallable('getTests')({ classId: classId, lectureId: lectureId, }).then(async data => {
+    //     let tests = data.data;
+    //     if (!tests.length) return 0;
+    //     await Promise.all(tests.map((testData, i) => {
+    //         return lectureRef.collection('tests').doc(testData.id).collection('grade').doc(studentId).get().then(gradeDoc => {
+    //             const gradeData = gradeDoc.data();
+    //             if (gradeDoc.exists) {
+    //                 tests[i].myGrade = gradeData.grade;
+    //                 tests[i].comment = 'comment' in gradeData ? gradeData.comment : '';
+    //             } else {
+    //                 tests[i].myGrade = null;
+    //                 tests[i].comment = '';
+    //             }
+    //         });
+    //     }));
+    //     document.getElementById('list-1').innerHTML = tests.map(test => {
+    //         if (test.myGrade != null) {
+    //             let graph = '';
+    //             let testOnClick = '';
+    //             const average = Math.round(test.grades.reduce((a, b) => a + b) / test.grades.length * 10) / 10;
+    //             if (test.points > 19) {
+    //                 let gradeDistribution = new Array(20).fill(0);
+    //                 const range = test.points / 20;
+    //                 for (grade of test.grades) {
+    //                     if (grade == test.points) grade -= 0.01;
+    //                     gradeDistribution[Math.floor(grade / range)]++;
     //                 }
-    //             });
-    //         }));
-    //         document.getElementById('list-1').innerHTML = tests.map(test => {
-    //             return `<li class="large">
-    //                 <p><span>${test.name}</span><span>${test.grade ? `${test.grade} / ${test.points}` : '정보 없음'}</span></p>
-    //             </li>`;
-    //         }).join('');
-    //     }
-    // }).catch(() => location.replace('/signin')),
+    //                 const maxDistribution = Math.max(...gradeDistribution);
+    //                 let indexes = [0, 0];
+    //                 if (test.myGrade == test.points) {
+    //                     indexes[0] = 19;
+    //                 } else {
+    //                     indexes[0] = Math.floor(test.myGrade / range)
+    //                 }
+    //                 if (average == test.points) {
+    //                     indexes[1] = 19;
+    //                 } else {
+    //                     indexes[1] = Math.floor(average / range)
+    //                 }
+    //                 graph = `<div class="graph-histogram">
+    //                     <div class="graph--container">
+    //                         ${gradeDistribution.map((x, i) => {
+    //                             x = 6 + 34 * x / maxDistribution;
+    //                             if (i == indexes[0]) {
+    //                                 return `<div style="height: ${x}px;" class="colored"></div>`
+    //                             } else if (i == indexes[1]) {
+    //                                 return `<div style="height: ${x}px;" class="dark"></div>`
+    //                             } else {
+    //                                 return `<div style="height: ${x}px;"></div>`
+    //                             }
+    //                         }).join('')}
+    //                     </div>
+    //                     <div class="graph--index">
+    //                         <p><span class="colored"></span>내 점수</p>
+    //                         <p><span class="dark"></span>평균 (${average}점)</p>
+    //                     </div>
+    //                 </div>`;
+    //             } else {
+    //                 const size = Math.floor(test.points);
+    //                 let gradeDistribution = new Array(size).fill(0);
+    //                 for (grade of test.grades) {
+    //                     gradeDistribution[Math.floor(grade)]++;
+    //                 }
+    //                 const maxDistribution = Math.max(...gradeDistribution);
+    //                 let indexes = [Math.floor(test.myGrade), Math.floor(average)];
+    //                 graph = `<div class="graph-histogram">
+    //                     <div class="graph--container">
+    //                         ${gradeDistribution.map((x, i) => {
+    //                             x = 6 + 34 * x / maxDistribution;
+    //                             if (i == indexes[0]) {
+    //                                 return `<div style="height: ${x}px;" class="colored"></div>`
+    //                             } else if (i == indexes[1]) {
+    //                                 return `<div style="height: ${x}px;" class="dark"></div>`
+    //                             } else {
+    //                                 return `<div style="height: ${x}px;"></div>`
+    //                             }
+    //                         }).join('')}
+    //                     </div>
+    //                     <div class="graph--index">
+    //                         <p><span class="colored"></span>내 점수</p>
+    //                         <p><span class="dark"></span>평균 (${average}점)</p>
+    //                     </div>
+    //                 </div>`;
+    //             }
+    //             if ('type' in test && (/^T-[0-9]+$/).test(test.type)) {
+    //                 testOnClick = `onclick="location.href = '/app/${studentId}/${classId}/${lectureId}/${test.id}';"`;
+    //             }
+
+    //             return `<li class="title disabled no-padding-bottom" ${testOnClick}><p><span>${test.name}</span><span>${test.myGrade} / ${test.points}</span></p></li>
+    //             <li class="comment disabled" ${testOnClick}>${String(test.comment).trim()}</li>
+    //             <li class="disabled no-padding-top" ${testOnClick}>${graph}</li>`;
+    //         } else {
+    //             return `<li class="disabled"><span>${test.name}</span><span>정보 없음</span></li>`;
+    //         }
+    //     }).join('');
+    // }).catch(error => {
+    //     console.error(error);
+    //     document.getElementById('list-1').innerHTML = '<li class="disabled">일시적인 오류가 발생했습니다</li>';
+    // }),
 ]).then(() => {
     setTimeout(() => {
         document.getElementsByTagName('body')[0].classList.add('active');

@@ -25,6 +25,8 @@ let ref = {
     },
     teachers: {
         ref: db.collection('teachers'),
+        data: {},
+        uid: '',
     },
     words: {
         ref: db.collection('words'),
@@ -81,10 +83,23 @@ let beforeOpen = {
     'teachers_main': () => {
         return ref.teachers.ref.orderBy('name').get().then(snapshot => {
             teachers_main__list.innerHTML = snapshot.docs.map(doc => {
-                return `<li>${doc.data().name}</li>`;
+                const Data = doc.data();
+                ref.teachers.data[doc.id] = Data;
+                return `<li id="open__teachers_edit:${doc.id}" onclick="openSection(2, 'teachers_edit', '${doc.id}');">${Data.name}</li>`;
             }).join('');
             return;
         });
+    },
+    'teachers_edit': async (teacherId) => {
+        ref.teachers.uid = teacherId;
+        let Data = ref.teachers.data[teacherId];
+        
+        teachers_edit__form.elements['name'].value = Data.name;
+        // teachers_edit__form.elements['phone'].value = `0${Data.phone.slice(3)}`;
+        return;
+    },
+    'teachers_delete': () => {
+        teachers_delete__save.classList.remove('hidden');
     },
 
     // words
@@ -234,6 +249,18 @@ let beforeClose = {
             return;
         });
     },
+    'teachers_delete': (_event) => {
+        if (_event !== 'TD') return;
+
+        teachers_delete__save.classList.add('hidden');
+
+        return firebase.functions().httpsCallable('deleteTeacher')({
+            uid: ref.teachers.uid,
+        }).catch(alert).then(() => {
+            teachers_delete__save.classList.remove('hidden');
+            return false;
+        });
+    },
 
     // words
     'words_manageBooks_D': (_event) => {
@@ -316,6 +343,25 @@ var openSection = async (depth, sectionId, openingOption, closingOption) => {
     return false;
 };
 
+
+var students_main__updated = () => {
+    const data = new FormData(students_main__form);
+    const name = data.get('name');
+    const schoolName = data.get('schoolName');
+    const schoolYear = Number(data.get('schoolYear'));
+    const schoolStatus = data.get('schoolStatus');
+    
+    let res = [];
+    for (const [studentId, Data] of Object.entries(ref.students.data)) {
+        if (name && !Data.name.includes(name)) continue;
+        if (schoolName && !Data.school.name.includes(schoolName)) continue;
+        if (schoolYear && Data.school.year != schoolYear) continue;
+        if (schoolStatus && Data.school.status != schoolStatus) continue;
+
+        res.push(`<li id="open__students_edit:${studentId}" onclick="openSection(2, 'students_edit', '${studentId}');"><span>${Data.name}</span><span class="detail">${Data.school.name} ${Data.school.year}</span></li>`);
+    }
+    students_main__list.innerHTML = res.join('');
+};
 
 students_upload__file.addEventListener('change', event => {
     students_upload__save.classList.add('hidden');

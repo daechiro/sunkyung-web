@@ -176,7 +176,60 @@ const questions = {
         },
     },
     edit: {
-
+        n: -1,
+        modal: document.getElementById('modal_questions_edit'),
+        form: document.getElementById('form_questions_edit'),
+        questionsData: [],
+        open: async (n) => {
+            document.getElementById('n_questions_edit').innerHTML = n + 1;
+            questions.edit.n = n;
+            questions.edit.questionsData = await TEST.get().then(doc => doc.data().questions);
+            const Q = questions.edit.questionsData[n];
+            questions.edit.form.querySelector('input[name="multipleChoice"]').checked = Q.multipleChoice;
+            questions.edit.form.querySelector('input[name="answer"]').value = Q.multipleChoice ? Q.answer : null;
+            questions.edit.form.querySelector('input[name="points"]').value = Q.points;
+            questions.edit.form.querySelector('select[name="type"]').value = Q.type;
+            questions.edit.form.querySelector('input[name="note"]').value = Q.note;
+            questions.edit.onTypeChange();
+            questions.edit.modal.classList.remove('inactive');
+        },
+        close: () => {
+            questions.edit.modal.classList.add('inactive');
+            questions.edit.form.reset();
+            questions.edit.n = -1;
+            questions.edit.questionsData = [];
+        },
+        onTypeChange: () => {
+            const mul = questions.edit.form.querySelector('input[name="multipleChoice"]').checked;
+            questions.edit.form.querySelector('input[name="answer"]').style.display = mul ? 'block' : 'none';
+            questions.edit.form.querySelector('input[name="answer"]').required = mul;
+        },
+        save: () => {
+            loading.open();
+            const data = new FormData(questions.edit.form);
+            const question = data.get('multipleChoice') ? {
+                answer: data.get('answer') * 1,
+                points: data.get('points') * 1,
+                type: data.get('type'),
+                note: data.get('note'),
+                multipleChoice: true,
+            } : {
+                points: data.get('points') * 1,
+                type: data.get('type'),
+                note: data.get('note'),
+                multipleChoice: false,
+            };
+            let oldData = questions.edit.questionsData;
+            const pointsIncrement = Number(data.get('points')) - oldData[questions.edit.n].points;
+            oldData.splice(questions.edit.n, 1, question);
+            TEST.update({
+                points: firebase.firestore.FieldValue.increment(pointsIncrement),
+                questions: oldData,
+            }).catch(console.error).then(refreshQuestions);
+            questions.edit.close();
+            loading.close();
+            return false;
+        },
     },
     del: {
         modal: document.getElementById('modal_deleteStudent'),
@@ -239,19 +292,41 @@ var refreshInfo = (auth) => {
         }),
     ]);
 };
-var refreshQuestions = (auth) => {
+var refreshQuestions = async (auth) => {
     loading.open();
-    return TEST.get().then(async doc => {
-        const testData = doc.data();
-        document.getElementById('test-points').innerHTML = testData.points;
-        document.getElementById('test-questions-length').innerHTML = ('questions' in testData) ? testData.questions.length : 0;
-        document.getElementById('test-questions').innerHTML = testData.questions.map((Q, i) => `<tr>
-            <td>${i + 1}</td>
-            <td class="center">${Q.multipleChoice ? Q.answer : '_'}</td>
-            <td class="center">${Q.points}</td>
-            <td>${Q.type}</td>
-            <td>${Q.note}</td>
-        </tr>`).join('');
-        loading.close();
-    });
+    const [testData, gradeData] = await Promise.all([
+        TEST.get().then(doc => doc.data()),
+        TEST.collection('grade').get().then(snapshot => {
+            const gradeData = {
+                grades: [],
+            };
+            gradeData.raw = snapshot.docs.map(gradeDoc => {
+                const Data = gradeDoc.data();
+                gradeData.grades.push(Data.grade);
+                return Data
+            });
+            return gradeData;
+        }),
+    ]);
+    const attended = gradeData.grades.length;
+
+    document.getElementById('test-points').innerHTML = testData.points;
+    document.getElementById('test-questions-length').innerHTML = ('questions' in testData) ? testData.questions.length : 0;
+    document.getElementById('test-attend').innerHTML = attended;
+    document.getElementById('test-average').innerHTML = attended ? Math.round(gradeData.grades.reduce((a, b) => a + b) / attended * 10) / 10 : '--';
+    document.getElementById('test-top30').innerHTML = attended ? Math.floor(gradeData.grades[Math.floor(attended * 0.3)]) : '--';
+
+    document.getElementById('test-questions').innerHTML = testData.questions.map((Q, i) => `<tr>
+        <td>${i + 1}</td>
+        <td class="center">${Q.multipleChoice ? Q.answer : '_'}</td>
+        <td class="center">${Q.points}</td>
+        <td>${Q.type}</td>
+        <td>${attended ? Math.floor(gradeData.raw.filter(doc => Number(doc.answers[i]) === Number(Q.answer)).length * 1000 / attended) / 10 : '--'}%</td>
+        <td>${Q.note}</td>
+        <td class="edit">
+            <span class="material-icons-round" onclick="questions.edit.open(${i});">create</span>
+        </td>
+    </tr>`).join('');
+    loading.close();
+    return;
 };

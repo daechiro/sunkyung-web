@@ -18,6 +18,10 @@ service cloud.firestore {
   	function isParent(UID) {
     	return request.auth.uid == get(/databases/$(database)/documents/students/$(UID)).data.parent;
     }
+
+    function isMember() {
+    	return exists(/databases/$(database)/documents/students/$(request.auth.uid)) || exists(/databases/$(database)/documents/parents/$(request.auth.uid)) || exists(/databases/$(database)/documents/managers/$(request.auth.uid)) || exists(/databases/$(database)/documents/teachers/$(request.auth.uid));
+    }
   
   	function hasMemberAccess(UID) {
     	return request.auth.uid == UID || isParent(UID) || isManager() || isTeacher();
@@ -48,7 +52,7 @@ service cloud.firestore {
     }
 
     match /teachers/{UID} {
-      allow read:  if request.auth.uid != null;
+      allow read:  if isMember();
       allow write: if false;
     }
 
@@ -62,26 +66,28 @@ service cloud.firestore {
     }
         
     match /classes/{classId} {
-      allow read: if request.auth.uid != null;
+      allow read: if isMember();
       allow create: if isTeacher() && validClassInitData();
       allow update, delete: if isClassTeacher(classId);
 
       match /lectures/{lectureId} {
-        allow read:  if request.auth.uid != null;
+        allow read:  if isMember();
         allow write: if isClassTeacher(classId);
 
         match /attendance/{UID} {
-          allow read:  if hasMemberAccess(UID);
+          // allow read:  if hasMemberAccess(UID);
+          allow read: if isMember();
           allow write: if isClassTeacher(classId);
         }
         
         match /tests/{testId} {
-          allow read: if isTeacher();
-          // allow read: if request.auth.uid != null;
+          // allow read: if isTeacher();
+          allow read: if isMember();
           allow write: if isClassTeacher(classId);
 
           match /grade/{UID} {
-            allow read:  if hasMemberAccess(UID);
+            // allow read:  if hasMemberAccess(UID);
+            allow read: if isMember();
             allow write: if isTeacher();
           }
         }

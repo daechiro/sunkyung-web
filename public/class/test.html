@@ -49,6 +49,18 @@
                     <span class="sk-list-icon material-icons-round">help_center</span>
                     <span class="sk-list-text"><b id="test-questions-length">&nbsp;&nbsp;</b>문항 (총 <b id="test-points">&nbsp;&nbsp;</b>점)</span>
                 </li>
+                <li>
+                    <span class="sk-list-icon material-icons-round">analytics</span>
+                    <span class="sk-list-text"><b id="test-attend">&nbsp;&nbsp;</b>명 응시</span>
+                </li>
+                <li>
+                    <span class="sk-list-icon material-icons-round">analytics</span>
+                    <span class="sk-list-text">평균: <b id="test-average">&nbsp;&nbsp;&nbsp;&nbsp;</b>점</span>
+                </li>
+                <li>
+                    <span class="sk-list-icon material-icons-round">analytics</span>
+                    <span class="sk-list-text">상위 30%: <b id="test-top30">&nbsp;&nbsp;</b>점</span>
+                </li>
             </ul>
         </div>
 
@@ -67,7 +79,9 @@
                         <th class="xs center">정답</th>
                         <th class="xs center">배점</th>
                         <th>유형</th>
+                        <th>정답률</th>
                         <th>비고</th>
+                        <th class="small"></th>
                     </tr>
                 </thead>
                 <tbody id="test-questions"></tbody>
@@ -118,6 +132,57 @@
                 <button type="button" class="sk-button" onclick="deleteTest.close();">취소</button>
                 <button type="submit" class="sk-button colored alert" onclick="deleteTest.del();">삭제</button>
             </div>
+        </div>
+    </div>
+
+    <!-- 문제 수정 -->
+    <div class="sk-modal inactive" id="modal_questions_edit">
+        <div class="sk-modal-body">
+            <p class="title">문제 수정하기</p>
+            <p class="text"><span id="n_questions_edit">&nbsp;</span>번 문제</p><br>
+            <form id="form_questions_edit" method="POST" onsubmit="return questions.edit.save();">
+                <div class="sk-input-checkbox">
+                    <input type="checkbox" checked name="multipleChoice" id="multipleChoice" onchange="questions.edit.onTypeChange();">
+                    <label for="multipleChoice">객관식</label>
+                </div>
+                <p>정답</p>
+                <input class="sk-input" type="number" required placeholder="정답" name="answer">
+                <p>배점</p>
+                <input class="sk-input" type="number" required placeholder="배점" name="points">
+                <p>유형</p>
+                <select class="sk-select" required name="type">
+                    <option value="" style="display: none;">문제 유형</option>
+                    <optgroup label="단어시험">
+                        <option value="단어시험 - 어휘">어휘</option>
+                    </optgroup>
+                    <optgroup label="모의고사">
+                        <option value="듣기">듣기</option>
+                        <option value="목적">목적</option>
+                        <option value="심경">심경</option>
+                        <option value="주장">주장</option>
+                        <option value="밑줄의미">밑줄의미</option>
+                        <option value="요지">요지</option>
+                        <option value="주제">주제</option>
+                        <option value="제목">제목</option>
+                        <option value="도표">도표</option>
+                        <option value="내용일치">내용일치</option>
+                        <option value="안내문">안내문</option>
+                        <option value="어법">어법</option>
+                        <option value="어휘">어휘</option>
+                        <option value="빈칸">빈칸</option>
+                        <option value="무관한">무관한</option>
+                        <option value="순서">순서</option>
+                        <option value="삽입">삽입</option>
+                        <option value="요약">요약</option>
+                        <option value="장문">장문</option>
+                    </optgroup>
+                </select>
+                <input class="sk-input" type="text" placeholder="비고" name="note">
+                <div class="sk-modal-buttons">
+                    <button type="button" class="sk-button" onclick="questions.edit.close();">취소</button>
+                    <button type="submit" class="sk-button colored">저장</button>
+                </div>
+            </form>
         </div>
     </div>
     

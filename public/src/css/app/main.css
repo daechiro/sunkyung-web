@@ -86,6 +86,7 @@ body.active {
     padding: 0px;
     margin: 0px;
     position: fixed;
+    z-index: 9;
     top: 0px;
     left: 0px;
     display: flex;
@@ -134,6 +135,7 @@ body.active {
     margin: 0px;
     padding: 0px 16px;
     background-color: #f2f1f6;
+    z-index: 1;
 }
 .container h1 {
     margin: 0px 0px 16px 0px;
@@ -243,6 +245,9 @@ body.active {
     display: flex;
     justify-content: space-between;
 }
+.container li.hidden {
+    display: none;
+}
 
 .container ul.numbered li {
     width: 100%;
@@ -251,6 +256,9 @@ body.active {
     align-items: center;
 }
 .container ul > li:last-child {
+    border-bottom: 0px;
+}
+.container ul > li.no-border {
     border-bottom: 0px;
 }
 .container ul.numbered > div:last-child > li {
@@ -319,18 +327,18 @@ body.active {
 }
 
 .container li.attendance::after {
+    display: none;
+}
+.container li.attendance .status {
     font-family: 'NanumSquare', sans-serif;
     font-weight: 400;
     pointer-events: none;
-    content: '정보 없음';
     color: #6E6E73;
 }
-.container li.attendance.true::after {
-    content: '출석';
+.container li.attendance .status.true {
     color: #65C466;
 }
-.container li.attendance.false::after {
-    content: '결석';
+.container li.attendance .status.false {
     color: #EB4D3D;
 }
 
@@ -374,6 +382,48 @@ body.active {
     pointer-events: none;
 }
 
+/* for login */
+.container li input {
+    width: calc(100% - 32px);
+    margin: 6px 0px;
+    padding: 0px;
+    outline: none;
+    border: none;
+    font-family: 'NanumSquare', sans-serif !important;
+    font-size: 16px;
+    font-weight: 400;
+    background: none;
+    -webkit-appearance: none;
+}
+.container > button {
+    height: 56px;
+    width: 100%;
+    margin: 16px 0px 16px 0px;
+    padding: 0px;
+    border: none;
+    border-radius: 12px;
+    text-align: center;
+    font-weight: 500;
+    font-size: 16px !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #0171e3;
+    color: #fff;
+    opacity: 1;
+    transition: opacity 200ms, height 400ms;
+    pointer-events: auto;
+    cursor: pointer;
+}
+.container > button.hidden {
+    height: 0px;
+    opacity: 0;
+    pointer-events: none;
+}
+.container > button span {
+    margin: 0px 3px 0px 3px;
+}
+
 
 .graph-histogram {
     width: 100%;
@@ -400,24 +450,35 @@ body.active {
 .graph-histogram .graph--container div.colored {
     background-color: #740118;
 }
+.graph-histogram .graph--container div.highlighted {
+    background-color: #fd6886;
+}
 
 .graph-dot {
-    width: 100%;
+    width: calc(100% - 4px);
     margin: 0px 20px 0px 5px;
     padding: 0px;
 }
 .graph-dot .graph--container {
     width: 100%;
-    height: 80px;
+    height: 84px;
     display: flex;
-    justify-content: space-between;
+    justify-content: left;
     align-items: flex-end;
+    flex-wrap: nowrap;
+    overflow-x: auto;
 }
 .graph-dot .graph--container > div {
-    padding: 0px;
-    height: 80px;
+    flex: 0 0 auto;
+    padding: 0px 8px 0px 8px;
+    margin: 0px;
+    height: 84px;
     width: 8px;
     position: relative;
+    transition: all 300ms;
+}
+.graph-dot .graph--container > div:last-child {
+    margin-right: 20px;
 }
 .graph-dot .graph--container > div > div {
     height: 8px;
@@ -437,6 +498,9 @@ body.active {
 .graph-dot .graph--container > div > div.colored {
     background-color: #740118;
 }
+.graph-dot .graph--container > div > div.highlighted {
+    background-color: #fd6886;
+}
 .graph-dot .graph--container > div > div.bar {
     height: 30px;
     width: 2px;
@@ -445,8 +509,52 @@ body.active {
     border-radius: 2px;
     display: block;
     position: absolute;
-    bottom: 0px;
+    bottom: 24px;
     background-color: #C7C7C7;
+}
+.graph-dot .graph--container > div > p.tag {
+    /* height: 8px; */
+    width: 100%;
+    padding: 0px;
+    margin: 0px 0px 8px 0px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 400;
+    display: block;
+    position: absolute;
+    left: 0px;
+    bottom: 0px;
+}
+.graph-dot .graph--container > div > p.detail {
+    width: 20px;
+    padding: 0px;
+    margin: 0px 0px 0px 10px;
+    font-size: 12px;
+    font-style: italic;
+    font-weight: 400;
+    display: none;
+    position: absolute;
+    bottom: 0px;
+}
+.graph-dot .graph--container > div > p.detail.left {
+    margin: 0px;
+    left: 0px;
+    text-align: right;
+}
+.graph-dot .graph--container > div > p.highlighted {
+    color: #fd6886;
+}
+.graph-dot .graph--container > div.showDetails {
+    padding: 0px 24px;
+}
+.graph-dot .graph--container > div.showDetails > p.detail {
+    display: block;
+}
+.graph-dot .graph--container > div.showDetails.wide {
+    padding: 0px 30px;
+}
+.graph-dot .graph--container > div.showDetails.wide > p.detail.left {
+    width: 26px;
 }
 
 .graph--index {
@@ -471,11 +579,11 @@ body.active {
     background-color: #C7C7C7;
 }
 .graph--index p span.dark {
-    height: 2px;
-    width: 2px;
-    border: solid 2px #6E6E73;
-    background-color: #FFFFFF;
+    background-color: #6E6E73;
 }
 .graph--index p span.colored {
     background-color: #740118;
+}
+.graph--index p span.highlighted {
+    background-color: #fd6886;
 }

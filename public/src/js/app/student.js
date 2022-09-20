@@ -12,12 +12,15 @@ if (localStorage.getItem('back') === 'true') {
 
 studentRef.get().then(doc => {
     const Data = doc.data();
+    if (Data.classes.length == 1) {
+        location.replace(`/app/${studentId}/${Data.classes[0]}`);
+    };
     document.getElementById('name').innerHTML = Data.name;
     return Promise.all([
         db.collection('parents').doc(Data.parent).get().then(doc => {
             if (doc.exists && doc.data().children.length > 1) {
                 document.getElementById('header').style.display = 'flex';
-                document.getElementsByTagName('body')[0].classList.remove('fixed');
+                // document.getElementsByTagName('body')[0].classList.remove('fixed');
             } else {
                 localStorage.setItem('back', 'false');
                 document.getElementsByTagName('body')[0].classList.add('fixed');

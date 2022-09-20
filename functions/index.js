@@ -248,97 +248,117 @@ exports.addTeacher = functions.https.onCall(async (data, context) => {
     
     return ref.teacher(uid).set({
         name: data.name,
-    }, { merge: true });
+    }, { merge: true }).then(() => true).catch(() => false);;
 });
 
-exports.getTests = functions.https.onCall(async (data, context) => {
-    if ((await Promise.all([ref.student(context.auth.uid).get().then(doc => doc.exists), ref.parent(context.auth.uid).get().then(doc => doc.exists), ])).every(x => !x)) throw new functions.https.HttpsError('unauthorized', 'Unauthorized user access.');
-    if (!(data.classId && data.lectureId)) throw new functions.https.HttpsError('invalid-argument', 'Invalid or insufficient arguments.');
+exports.deleteTeacher = functions.https.onCall(async (data, context) => {
+    if (!(await ref.manager(context.auth.uid).get().then(doc => doc.exists))) throw new functions.https.HttpsError('unauthorized', 'Unauthorized user access.');
+    if (!data.uid) throw new functions.https.HttpsError('invalid-argument', 'Invalid or insufficient arguments.');
     
-    const testData = await ref.class(data.classId).collection('lectures').doc(data.lectureId).collection('tests').get().then(snapshot => snapshot.docs).catch(() => false);
-    if (!testData) throw new functions.https.HttpsError('invalid-argument', 'Invalid or insufficient arguments.');
+    const teacherData = await ref.teacher(data.uid).get().then(doc => doc.exists ? doc.data() : false).catch(() => false);
+    if (!teacherData) throw new functions.https.HttpsError('invalid-argument', 'Invalid or insufficient arguments.');
 
-    return await Promise.all(testData.map(doc => {
-        let Data = doc.data();
-        Data.id = doc.id;
-        Data.questions = Data.questions.map(Q => {
-            delete Q.answer;
-            return Q;
-        });
-        return ref.class(data.classId).collection('lectures').doc(data.lectureId).collection('tests').doc(doc.id).collection('grade').get().then(snapshot => {
-            Data.grades = snapshot.docs.map(doc => doc.data().grade);
-            return Data;
-        });
-    }));
+    return Promise.all([
+        db.collection('classes').where('teachers', 'array-contains', data.uid).get().then(snapshot => {
+            return Promise.all(snapshot.docs.map(doc => {
+                return doc.ref.update({
+                    teachers: admin.firestore.FieldValue.arrayRemove(data.uid),
+                });
+            }));
+        }),
+        ref.teacher(data.uid).delete(),
+        admin.auth().deleteUser(data.uid),
+    ]).then(() => true).catch(() => false);
 });
 
-exports.getTest = functions.https.onCall(async (data, context) => {
-    if ((await Promise.all([ref.student(context.auth.uid).get().then(doc => doc.exists), ref.parent(context.auth.uid).get().then(doc => doc.exists), ])).every(x => !x)) throw new functions.https.HttpsError('unauthorized', 'Unauthorized user access.');
-    if (!(data.classId && data.lectureId && data.testId && data.answers)) throw new functions.https.HttpsError('invalid-argument', 'Invalid or insufficient arguments.');
+// exports.getTests = functions.https.onCall(async (data, context) => {
+//     if ((await Promise.all([ref.student(context.auth.uid).get().then(doc => doc.exists), ref.parent(context.auth.uid).get().then(doc => doc.exists), ])).every(x => !x)) throw new functions.https.HttpsError('unauthorized', 'Unauthorized user access.');
+//     if (!(data.classId && data.lectureId)) throw new functions.https.HttpsError('invalid-argument', 'Invalid or insufficient arguments.');
     
-    const classRef = ref.class(data.classId).collection('lectures').doc(data.lectureId);
-    const testRef = classRef.collection('tests').doc(data.testId);
-    const testData = await testRef.get().then(doc => doc.data()).catch(() => false);
-    if (!testData) throw new functions.https.HttpsError('invalid-argument', 'Invalid or insufficient arguments.');
+//     const testData = await ref.class(data.classId).collection('lectures').doc(data.lectureId).collection('tests').get().then(snapshot => snapshot.docs).catch(() => false);
+//     if (!testData) throw new functions.https.HttpsError('invalid-argument', 'Invalid or insufficient arguments.');
 
-    await Promise.all([
-        testRef.collection('grade').get().then(snapshot => {
-            testData.grades = snapshot.docs.map(doc => doc.data().grade);
-            testData.questions = testData.questions.map((Q, i) => {
-                Q.ratio = Math.floor(snapshot.docs.filter(doc => Number(doc.data().answers[i]) === Number(Q.answer)).length * 1000 / snapshot.docs.length) / 10;
-                Q.answer = Number(Q.answer) === Number(data.answers[i]);
-                return Q;
-            });
-            return 0;
-        }),
-        classRef.collection('attendance').where('attendance', '==', true).get().then(snapshot => {
-            testData.attended = snapshot.docs.length;
-            return 0;
-        }),
-    ]);
-    return testData;
-});
+//     return await Promise.all(testData.map(doc => {
+//         let Data = doc.data();
+//         Data.id = doc.id;
+//         Data.questions = Data.questions.map(Q => {
+//             delete Q.answer;
+//             return Q;
+//         });
+//         return ref.class(data.classId).collection('lectures').doc(data.lectureId).collection('tests').doc(doc.id).collection('grade').get().then(snapshot => {
+//             Data.grades = snapshot.docs.map(doc => doc.data().grade);
+//             return Data;
+//         });
+//     }));
+// });
 
-exports.getTestReport = functions.https.onCall(async (data, context) => {
-    if ((await Promise.all([ref.student(context.auth.uid).get().then(doc => doc.exists && context.auth.uid === data.studentId), ref.parent(context.auth.uid).get().then(doc => doc.exists && doc.data().children.includes(data.studentId)), ])).every(x => !x)) throw new functions.https.HttpsError('unauthorized', 'Unauthorized user access.');
-    if (!data.classId) throw new functions.https.HttpsError('invalid-argument', 'Invalid or insufficient arguments.');
+// exports.getTest = functions.https.onCall(async (data, context) => {
+//     if ((await Promise.all([ref.student(context.auth.uid).get().then(doc => doc.exists), ref.parent(context.auth.uid).get().then(doc => doc.exists), ])).every(x => !x)) throw new functions.https.HttpsError('unauthorized', 'Unauthorized user access.');
+//     if (!(data.classId && data.lectureId && data.testId && data.answers)) throw new functions.https.HttpsError('invalid-argument', 'Invalid or insufficient arguments.');
+    
+//     const classRef = ref.class(data.classId).collection('lectures').doc(data.lectureId);
+//     const testRef = classRef.collection('tests').doc(data.testId);
+//     const testData = await testRef.get().then(doc => doc.data()).catch(() => false);
+//     if (!testData) throw new functions.https.HttpsError('invalid-argument', 'Invalid or insufficient arguments.');
 
-    let testData;
-    const lecturesRef = ref.class(data.classId).collection('lectures');
-    await lecturesRef.orderBy('open').get().then(snapshot => {
-        testData = {
-            'T-12': new Array(snapshot.docs.length),
-            'T-15': new Array(snapshot.docs.length),
-            'T-45': new Array(snapshot.docs.length),
-        };
-        return Promise.all(snapshot.docs.map((doc, i) => {
-            const testsRef = lecturesRef.doc(doc.id).collection('tests');
-            return testsRef.get().then(snapshot => Promise.all(snapshot.docs.map(tDoc => {
-                let Data = tDoc.data();
-                if (String(Data.type) in testData) {
-                    Data.lectureId = doc.id;
-                    Data.testId = tDoc.id;
-                    return testsRef.doc(tDoc.id).collection('grade').get().then(snapshot => {
-                        Data.grades = snapshot.docs.map(doc => {
-                            if (doc.id === data.studentId) {
-                                Data.myGrade = doc.data().grade;
-                                Data.myGradeDetail = doc.data().answers.map((x, i) => x == Data.questions[i].answer);
-                            }
-                            return doc.data().grade;
-                        });
-                        Data.questions = Data.questions.map(Q => {
-                            delete Q.answer;
-                            return Q;
-                        });
-                        testData[`${Data.type}`][i] = Data;
-                        return 0;
-                    });
-                }
-                return 0;
-            })));
-        }));
-    });
-    return testData;
-});
+//     await Promise.all([
+//         testRef.collection('grade').get().then(snapshot => {
+//             testData.grades = snapshot.docs.map(doc => doc.data().grade);
+//             testData.questions = testData.questions.map((Q, i) => {
+//                 Q.ratio = Math.floor(snapshot.docs.filter(doc => Number(doc.data().answers[i]) === Number(Q.answer)).length * 1000 / snapshot.docs.length) / 10;
+//                 Q.answer = Number(Q.answer) === Number(data.answers[i]);
+//                 return Q;
+//             });
+//             return 0;
+//         }),
+//         classRef.collection('attendance').where('attendance', '==', true).get().then(snapshot => {
+//             testData.attended = snapshot.docs.length;
+//             return 0;
+//         }),
+//     ]);
+//     return testData;
+// });
+
+// exports.getTestReport = functions.https.onCall(async (data, context) => {
+//     if ((await Promise.all([ref.student(context.auth.uid).get().then(doc => doc.exists && context.auth.uid === data.studentId), ref.parent(context.auth.uid).get().then(doc => doc.exists && doc.data().children.includes(data.studentId)), ])).every(x => !x)) throw new functions.https.HttpsError('unauthorized', 'Unauthorized user access.');
+//     if (!data.classId) throw new functions.https.HttpsError('invalid-argument', 'Invalid or insufficient arguments.');
+
+//     let testData;
+//     const lecturesRef = ref.class(data.classId).collection('lectures');
+//     await lecturesRef.orderBy('open').get().then(snapshot => {
+//         testData = {
+//             'T-12': new Array(snapshot.docs.length),
+//             'T-15': new Array(snapshot.docs.length),
+//             'T-45': new Array(snapshot.docs.length),
+//         };
+//         return Promise.all(snapshot.docs.map((doc, i) => {
+//             const testsRef = lecturesRef.doc(doc.id).collection('tests');
+//             return testsRef.get().then(snapshot => Promise.all(snapshot.docs.map(tDoc => {
+//                 let Data = tDoc.data();
+//                 if (String(Data.type) in testData) {
+//                     Data.lectureId = doc.id;
+//                     Data.testId = tDoc.id;
+//                     return testsRef.doc(tDoc.id).collection('grade').get().then(snapshot => {
+//                         Data.grades = snapshot.docs.map(doc => {
+//                             if (doc.id === data.studentId) {
+//                                 Data.myGrade = doc.data().grade;
+//                                 Data.myGradeDetail = doc.data().answers.map((x, i) => x == Data.questions[i].answer);
+//                             }
+//                             return doc.data().grade;
+//                         });
+//                         Data.questions = Data.questions.map(Q => {
+//                             delete Q.answer;
+//                             return Q;
+//                         });
+//                         testData[`${Data.type}`][i] = Data;
+//                         return 0;
+//                     });
+//                 }
+//                 return 0;
+//             })));
+//         }));
+//     });
+//     return testData;
+// });
 
 /* Designed by daechiro@gmail.com */
