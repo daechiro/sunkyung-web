@@ -20,7 +20,7 @@ Promise.all([
             document.getElementById('header').style.display = 'none';
             document.getElementsByTagName('body')[0].classList.add('fixed');
             
-            return db.collection('parents').doc(Data.parent).get().then(doc => {
+            return Data.parent ? db.collection('parents').doc(Data.parent).get().then(doc => {
                 if (doc.exists && doc.data().children.length > 1) {
                     backlink = '/app';
                     document.getElementById('student').innerHTML = '학생';
@@ -28,7 +28,7 @@ Promise.all([
                     document.getElementsByTagName('body')[0].classList.remove('fixed');
                 }
                 return true;
-            }).catch(() => false);
+            }).catch(() => false) : false;
         } else {
             document.getElementById('student').innerHTML = Data.name;
         }
@@ -89,7 +89,7 @@ var refreshList = () => {
             }</ul>`;
         }).join('');
     } else {
-        document.getElementById('list-1-title').style.display = 'none';
+        // document.getElementById('list-1-title').style.display = 'none';
         document.getElementById('list-1').style.display = 'none';
     }
     if (list2.length) {

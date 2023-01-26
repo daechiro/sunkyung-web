@@ -17,7 +17,7 @@ studentRef.get().then(doc => {
     };
     document.getElementById('name').innerHTML = Data.name;
     return Promise.all([
-        db.collection('parents').doc(Data.parent).get().then(doc => {
+        Data.parent ? db.collection('parents').doc(Data.parent).get().then(doc => {
             if (doc.exists && doc.data().children.length > 1) {
                 document.getElementById('header').style.display = 'flex';
                 // document.getElementsByTagName('body')[0].classList.remove('fixed');
@@ -26,7 +26,7 @@ studentRef.get().then(doc => {
                 document.getElementsByTagName('body')[0].classList.add('fixed');
             }
             return true;
-        }).catch(() => false),
+        }).catch(() => false) : false,
 
         Promise.all(Data.classes.map(classId => classesRef.doc(classId).get().then(doc => {
             if (!doc.exists) return '';

@@ -33,7 +33,7 @@ Promise.all([
         }).catch(() => []) || [];
         
         Data.words.sort((a, b) => a.index - b.index).forEach(w => {
-            if (memorized.includes(w.word.toLowerCase())) {
+            if (memorized.includes(w.word.toLowerCase().trim())) {
                 list2.push(w);
             } else {
                 list1.push(w);
@@ -119,21 +119,21 @@ var closeEdit = () => {
 
     const ref = db.collection('students').doc(firebase.auth().currentUser.uid);
     ref.update({
-        words: firebase.firestore.FieldValue.arrayRemove(...list1.map(w => w.word.toLowerCase())),
+        words: firebase.firestore.FieldValue.arrayRemove(...list1.map(w => w.word.toLowerCase().trim())),
     });
     ref.update({
-        words: firebase.firestore.FieldValue.arrayUnion(...list2.map(w => w.word.toLowerCase())),
+        words: firebase.firestore.FieldValue.arrayUnion(...list2.map(w => w.word.toLowerCase().trim())),
     });
 };
 var select = (event) => {
-    const i = list1.findIndex(w => w.word == event.target.innerText);
+    const i = list1.findIndex(w => w.word.trim() == event.target.innerText);
     list2.push(list1[i]);
     list2.sort((a, b) => a.index - b.index);
     list1.splice(i, 1);
     refreshList();
 };
 var deselect = (event) => {
-    const i = list2.findIndex(w => w.word == event.target.innerText);
+    const i = list2.findIndex(w => w.word.trim() == event.target.innerText);
     list1.push(list2[i]);
     list1.sort((a, b) => a.index - b.index);
     list2.splice(i, 1);

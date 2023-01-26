@@ -549,10 +549,10 @@ var refreshStudents = async (auth, option) => {
             if (option.orderBy == 'attendance') {
                 var attendanceOf = (uid) => {
                     if (uid in attendance) {
-                        if (attendance[uid].attendance) return 2;
-                        return 1;
+                        if (attendance[uid].attendance) return - Math.floor(attendance[uid].time.seconds / (24 * 60 * 60));
+                        return -99998;
                     }
-                    return 0;
+                    return -99999;
                 }
                 classData = classData.sort((a, b) => attendanceOf(b.uid) - attendanceOf(a.uid));
             } else if (option.orderBy == 'assignment') {

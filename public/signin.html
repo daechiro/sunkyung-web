@@ -6,34 +6,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>선경어학원 - 로그인</title>
 
-    <link rel="stylesheet" type="text/css" href="/src/css/app/main.css">
-</head>
-
-<body class="fixed">
-    <div class="container">
-        <h1 id="name">&nbsp;</h1>
-
-        <!-- <form method="post" onsubmit="return false;"> -->
-            <h3 id="form_title" style="margin: 180px 0px 8px 0px; text-align: center;">선경어학원 로그인</h3>
-            <ul id="list">
-                <li id="form_phone_container" class="no-border disabled">
-                    <input required pattern="010[0-9]{8}" id="form_phone" type="text" placeholder="전화번호 (e.g. 01012341234)">
-                </li>
-                <li id="form_code_container" class="hidden disabled">
-                    <input required id="form_code" type="text" placeholder="인증번호">
-                </li>
-            </ul>
-            <button class="hidden" id="form_submit" type="submit">인증번호 받기</button>
-            <button class="hidden" id="form_login" type="submit">로그인</button>
-        <!-- </form> -->
-    </div>
-    <h6 class="footer">Copyright © 2022 DaechiRo, Inc., and 2022 sunkyung edu.<br>All rights reserved.</h6>
-
     <script src="/__/firebase/8.2.1/firebase-app.js"></script>
     <script src="/__/firebase/8.2.1/firebase-auth.js"></script>
     <script src="/__/firebase/8.2.1/firebase-firestore.js"></script>
     <script src="/__/firebase/init.js?useEmulator=true"></script>
-    <script src="/src/js/signin.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/ui/4.6.1/firebase-ui-auth.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.6.1/firebase-ui-auth.css">
+
+    <!-- <link rel="stylesheet" type="text/css" href="/src/css/sk.css"> -->
+    <style>
+        body {
+            width: 100vw;
+            height: 100vh;
+            margin: 0px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="firebaseui-auth-container"></div>
+
+    <script>
+        const db = firebase.firestore();
+        const user = firebase.auth().currentUser;
+
+        // firebase.auth().onAuthStateChanged(async (user) => {
+        //     if (user) {
+        //         const data = await Promise.all([
+        //             firebase.firestore().collection('parents').doc(user.uid).get().then(doc => doc.exists ? doc.data().children : false).catch(() => false),
+        //             firebase.firestore().collection('students').doc(user.uid).get().then(doc => doc.exists).catch(() => false),
+        //         ]);
+        //         if (data[0] && data[0].length > 1) {
+        //             location.replace('/app/students');
+        //         } else if (data[0] && data[0].length) {
+        //             location.replace(`/app/${data[0][0]}`);
+        //         } else if (data[1]) {
+        //             location.replace(`/app/${user.uid}`);
+        //         } else if (await db.collection('teachers').doc(user.uid).get().then(doc => doc.exists).catch(() => false)) {
+        //             location.replace('/class');
+        //         } else if (await firebase.firestore().collection('managers').doc(user.uid).get().then(doc => doc.exists).catch(() => false)) {
+        //             location.replace('/admin');
+        //         }
+        //     }
+        // });
+
+        var ui = new firebaseui.auth.AuthUI(firebase.auth());
+        firebase.auth().languageCode = 'ko';
+        ui.start('#firebaseui-auth-container', {
+            signInSuccessUrl: '/app/students',
+            signInOptions: [{
+                provider: firebase.auth.PhoneAuthProvider.PROVIDER_ID,
+                defaultCountry: 'KR',
+                recaptchaParameters: {
+                    type: 'image',
+                    size: 'invisible',
+                    badge: 'bottomleft',
+                },
+            }],
+        });
+    </script>
 </body>
 <!-- Designed by daechiro@gmail.com -->
+
 </html>
